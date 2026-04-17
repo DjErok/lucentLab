@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Intermolecular Forces — interactive Lennard-Jones / Coulombic playground.
@@ -135,32 +137,11 @@ export default function IMF() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Tabs */}
-      <div role="tablist" aria-label="IMF type" style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {IMF_LIST.map((m, i) => {
-          const active = m.id === imfId;
-          return (
-            <button
-              key={m.id}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setImfId(m.id)}
-              className="mono"
-              style={{
-                padding: '10px 16px', fontSize: 11, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {m.name}
-            </button>
-          );
-        })}
-      </div>
+      <SlideTabs<IMFType>
+        tabs={IMF_LIST.map(m => ({ id: m.id, label: m.name }))}
+        value={imfId}
+        onChange={setImfId}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
         <div className="serif" style={{ fontSize: 24, fontStyle: 'italic' }}>{meta.example}</div>
@@ -171,29 +152,17 @@ export default function IMF() {
 
       {/* H-bond mode toggle */}
       {imfId === 'hbond' && (
-        <div style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
-          {(['single', 'network'] as const).map((mode, i) => {
-            const active = hbondMode === mode;
-            return (
-              <button
-                key={mode}
-                onClick={() => setHbondMode(mode)}
-                className="mono"
-                style={{
-                  padding: '6px 14px', fontSize: 10, letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  border: '1px solid var(--line-strong)',
-                  borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                  background: active ? meta.color + '22' : 'transparent',
-                  color: active ? meta.color : 'var(--paper-dim)',
-                  fontWeight: active ? 600 : 400, cursor: 'pointer',
-                }}
-              >
-                {mode === 'single' ? 'Single pair' : 'Network · 4 H₂O'}
-              </button>
-            );
-          })}
-          <span className="mono" style={{ fontSize: 10, color: 'var(--paper-faint)', marginLeft: 12 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <SlideTabs<'single' | 'network'>
+            tabs={[
+              { id: 'single', label: 'Single pair' },
+              { id: 'network', label: 'Network · 4 H₂O' },
+            ]}
+            value={hbondMode}
+            onChange={setHbondMode}
+            size="sm"
+          />
+          <span className="mono" style={{ fontSize: 10, color: 'var(--paper-faint)' }}>
             {showNetwork ? 'H-bonds per molecule: 4 · tetrahedral coordination' : 'donor → acceptor pair'}
           </span>
         </div>
@@ -235,34 +204,26 @@ export default function IMF() {
           borderRadius: 6, padding: 20,
           display: 'flex', flexDirection: 'column', gap: 12,
         }}>
-          <div className="eyebrow">Molecular separation</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span className="serif" style={{ fontSize: 24, color: meta.color }}>{r.toFixed(2)} Å</span>
+            <span className="eyebrow">Molecular separation</span>
             <span className="mono" style={{ fontSize: 10, color: 'var(--paper-faint)' }}>
               σ ≈ {meta.sigma.toFixed(2)} Å
             </span>
           </div>
-          <input
-            type="range"
-            min={meta.rangeMin} max={meta.rangeMax} step={0.05}
-            value={r} onChange={(e) => setR(Number(e.target.value))}
-            style={{ width: '100%', accentColor: meta.color }}
-          />
+          <UISlider value={r} min={meta.rangeMin} max={meta.rangeMax} step={0.05}
+                    onChange={setR} accent={meta.color}
+                    format={(v) => `${v.toFixed(2)} Å`} />
 
-          <div className="eyebrow" style={{ marginTop: 4 }}>Orientation θ</div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span className="serif" style={{ fontSize: 20, color: meta.color }}>{theta.toFixed(0)}°</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 4 }}>
+            <span className="eyebrow">Orientation θ</span>
             <span className="mono" style={{ fontSize: 9, color: 'var(--paper-faint)' }}>
               cos θ = {oFactor.toFixed(2)}
             </span>
           </div>
-          <input
-            type="range"
-            min={0} max={180} step={1}
-            value={theta} onChange={(e) => setTheta(Number(e.target.value))}
-            style={{ width: '100%', accentColor: meta.color }}
-            disabled={showNetwork}
-          />
+          <UISlider value={theta} min={0} max={180} step={1}
+                    onChange={setTheta} accent={meta.color}
+                    disabled={showNetwork}
+                    format={(v) => `${v.toFixed(0)}°`} />
           {meta.id === 'ldf' && (
             <div className="mono" style={{ fontSize: 9, color: 'var(--paper-faint)' }}>
               rotation has minimal effect on LDF (transient, isotropic)

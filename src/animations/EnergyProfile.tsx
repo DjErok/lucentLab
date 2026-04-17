@@ -26,7 +26,6 @@ export default function EnergyProfile() {
   // Curve geometry — kept in viewBox bounds (peak ~y=40 uncatalyzed, ~y=110 catalyzed)
   const uncatPath = 'M 40 220 C 130 220, 180 40, 250 40 S 370 175, 480 175';
   const catPath   = 'M 40 220 C 130 220, 200 110, 250 110 S 370 175, 480 175';
-  const activePath = cat ? catPath : uncatPath;
 
   // Active-curve ref for getPointAtLength so the ball ACTUALLY rides the curve.
   const activeRef = useRef<SVGPathElement | null>(null);

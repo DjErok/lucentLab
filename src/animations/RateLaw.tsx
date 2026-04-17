@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Rate Laws — three modes:
@@ -21,33 +23,15 @@ export default function RateLaw() {
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
-      <div role="tablist" aria-label="Rate-law mode" style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {(['initial','integrated','halflife'] as Mode[]).map((m, i) => {
-          const active = m === mode;
-          const label = m === 'initial' ? 'Method of Initial Rates'
-                      : m === 'integrated' ? 'Integrated Rate Laws'
-                      : 'Half-life';
-          return (
-            <button
-              key={m}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setMode(m)}
-              className="mono"
-              style={{
-                padding: '10px 16px', fontSize: 11, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >{label}</button>
-          );
-        })}
-      </div>
+      <SlideTabs<Mode>
+        tabs={[
+          { id: 'initial', label: 'Method of Initial Rates' },
+          { id: 'integrated', label: 'Integrated Rate Laws' },
+          { id: 'halflife', label: 'Half-life' },
+        ]}
+        value={mode}
+        onChange={setMode}
+      />
 
       {mode === 'initial' && <InitialRates />}
       {mode === 'integrated' && <Integrated />}
@@ -264,24 +248,12 @@ function Integrated() {
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 16 }}>
         <div style={{ background: 'var(--ink-1)', border: '1px solid var(--line)', borderRadius: 6, padding: 20 }}>
           <div className="eyebrow">Reaction order in A</div>
-          <div style={{ display: 'flex', gap: 0, marginTop: 10 }}>
-            {([0,1,2] as Order[]).map((o, i) => {
-              const active = o === order;
-              return (
-                <button key={o} onClick={() => setOrder(o)} className="mono"
-                  style={{
-                    flex: 1, padding: '10px', fontSize: 11, letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    border: '1px solid var(--line-strong)',
-                    borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                    background: active ? 'var(--paper)' : 'transparent',
-                    color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                    cursor: 'pointer', fontWeight: active ? 600 : 400,
-                  }}>
-                  Order {o}
-                </button>
-              );
-            })}
+          <div style={{ marginTop: 10 }}>
+            <SlideTabs<string>
+              tabs={[0, 1, 2].map(o => ({ id: String(o), label: `Order ${o}` }))}
+              value={String(order)}
+              onChange={(id) => setOrder(Number(id) as Order)}
+            />
           </div>
           <div className="serif" style={{ fontSize: 18, fontStyle: 'italic', marginTop: 16, lineHeight: 1.6 }}>
             {order === 0 && <>[A]<sub>t</sub> = [A]<sub>0</sub> − k·t</>}
@@ -658,15 +630,9 @@ function Slider({ label, value, min, max, step, onChange, accent, fmt }: {
   onChange: (v: number) => void; accent: string; fmt?: (v: number) => string;
 }) {
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="eyebrow">{label}</span>
-        <span className="mono" style={{ fontSize: 11, color: accent }}>{fmt ? fmt(value) : value}</span>
-      </div>
-      <input type="range" min={min} max={max} step={step} value={value}
-             onChange={(e) => onChange(Number(e.target.value))}
-             style={{ width: '100%', accentColor: accent }} />
-    </div>
+    <UISlider label={label} value={value} min={min} max={max} step={step}
+              onChange={onChange} accent={accent}
+              format={fmt ?? ((v) => Number.isInteger(v) ? `${v}` : v.toFixed(2))} />
   );
 }
 

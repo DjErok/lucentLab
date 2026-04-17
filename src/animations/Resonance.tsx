@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Resonance — Lewis structures, the resonance hybrid, formal charge & bond order.
@@ -375,32 +377,11 @@ export default function Resonance() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Molecule selector */}
-      <div role="tablist" aria-label="Molecule" style={{ display: 'flex', gap: 0, flexWrap: 'wrap' }}>
-        {MOLECULES.map((m, i) => {
-          const active = m.id === molId;
-          return (
-            <button
-              key={m.id}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setMolId(m.id)}
-              className="mono"
-              style={{
-                padding: '10px 14px', fontSize: 11, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {m.label}
-            </button>
-          );
-        })}
-      </div>
+      <SlideTabs<string>
+        tabs={MOLECULES.map(m => ({ id: m.id, label: m.label }))}
+        value={molId}
+        onChange={setMolId}
+      />
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
@@ -511,17 +492,9 @@ export default function Resonance() {
             <ControlBtn onClick={() => setPlaying(p => !p)}>{playing ? '❚❚ Pause' : '▶ Play'}</ControlBtn>
             <ControlBtn onClick={() => setForm(f => (f + 1) % mol.forms.length)}>Next →</ControlBtn>
           </div>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span className="eyebrow">Cycle speed</span>
-              <span className="mono" style={{ fontSize: 11, color: 'var(--phos)' }}>{speed.toFixed(1)} s/form</span>
-            </div>
-            <input
-              type="range" min={0.5} max={4} step={0.1} value={speed}
-              onChange={e => setSpeed(Number(e.target.value))}
-              style={{ width: '100%', accentColor: 'var(--phos)' }}
-            />
-          </div>
+          <UISlider label="Cycle speed" value={speed} min={0.5} max={4} step={0.1}
+                    onChange={setSpeed} accent="var(--phos)"
+                    format={(v) => `${v.toFixed(1)} s/form`} />
         </div>
       </div>
 

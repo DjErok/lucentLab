@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ELEMENTS } from '../data/elements';
+import UISlider from '../components/ui/Slider';
 
 /**
  * Photoelectron Spectroscopy (PES)
@@ -479,15 +480,9 @@ export default function PES() {
 
             {/* Photon energy slider */}
             <div style={{ marginTop: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span className="eyebrow">Photon energy hν</span>
-                <span className="mono" style={{ fontSize: 11, color: 'var(--phos)' }}>
-                  {photonE} MJ/mol
-                </span>
-              </div>
-              <input type="range" min={1} max={100} step={1} value={photonE}
-                     onChange={(e) => setPhotonE(Number(e.target.value))}
-                     style={{ width: '100%', accentColor: 'var(--phos)' }} />
+              <UISlider label="Photon energy hν" value={photonE} min={1} max={100} step={1}
+                        onChange={setPhotonE} accent="var(--phos)"
+                        format={(v) => `${v} MJ/mol`} />
             </div>
           </div>
         </div>

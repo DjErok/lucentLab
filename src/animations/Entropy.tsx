@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Entropy — PhET-quality interactive sandbox.
@@ -215,7 +217,6 @@ function GasExpansion() {
   // microstate counts
   const W_binary = useMemo(() => binomial(N, nL), [N, nL]);
   const S_binary = k_B * Math.log(Math.max(1, W_binary));
-  const S_molar = R * Math.log(Math.max(1, W_binary)) / N; // per particle, scaled by NA
   // Volume-based: ΔS for ideal gas doubling = N k ln 2
   const dS_ideal = open ? N * k_B * Math.log(2) : 0;
   const dS_molar = open ? R * Math.log(2) : 0;
@@ -597,31 +598,17 @@ function PhaseGlyph({ phase, color }: { phase: string; color: string }) {
 // ───── shared UI atoms ─────
 
 function ModeTabs({ mode, setMode }: { mode: Mode; setMode: (m: Mode) => void }) {
-  const tabs: { id: Mode; label: string }[] = [
-    { id: 'expansion', label: 'Gas expansion' },
-    { id: 'mixing', label: 'Mixing' },
-    { id: 'heat', label: 'Heat flow' },
-    { id: 'phase', label: 'Phase change ΔS' },
-  ];
   return (
-    <div role="tablist" style={{ display: 'flex', gap: 0, flexWrap: 'wrap' }}>
-      {tabs.map((t, i) => {
-        const active = t.id === mode;
-        return (
-          <button key={t.id} role="tab" aria-selected={active} onClick={() => setMode(t.id)} className="mono"
-            style={{
-              padding: '10px 16px', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-              border: '1px solid var(--line-strong)',
-              borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-              background: active ? 'var(--paper)' : 'transparent',
-              color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-              fontWeight: active ? 600 : 400, cursor: 'pointer',
-            }}>
-            {t.label}
-          </button>
-        );
-      })}
-    </div>
+    <SlideTabs<Mode>
+      tabs={[
+        { id: 'expansion', label: 'Gas expansion' },
+        { id: 'mixing', label: 'Mixing' },
+        { id: 'heat', label: 'Heat flow' },
+        { id: 'phase', label: 'Phase change ΔS' },
+      ]}
+      value={mode}
+      onChange={setMode}
+    />
   );
 }
 
@@ -679,15 +666,9 @@ function ActionBtn({ children, onClick, primary, disabled }: { children: React.R
 function Slider({ label, value, min, max, step, onChange, accent }:
   { label: string; value: number; min: number; max: number; step: number; onChange: (v: number) => void; accent: string }) {
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="eyebrow">{label}</span>
-        <span className="mono" style={{ fontSize: 11, color: accent }}>{value}</span>
-      </div>
-      <input type="range" min={min} max={max} step={step} value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        style={{ width: '100%', accentColor: accent }} />
-    </div>
+    <UISlider label={label} value={value} min={min} max={max} step={step}
+              onChange={onChange} accent={accent}
+              format={(v) => Number.isInteger(v) ? `${v}` : v.toFixed(2)} />
   );
 }
 

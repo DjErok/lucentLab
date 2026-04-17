@@ -553,9 +553,6 @@ function clamp(x: number, lo: number, hi: number): number {
   return x < lo ? lo : x > hi ? hi : x;
 }
 
-function fmtPH(p: number): string {
-  return p.toFixed(2);
-}
 
 // Solve h³ + a2·h² + a1·h + a0 = 0 for the unique positive real root in (1e-15, 1).
 // Bisection — slow but bulletproof for the monotonic proton-balance polynomial.

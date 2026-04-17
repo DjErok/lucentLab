@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Enthalpy — two interactive modes:
@@ -138,32 +139,14 @@ export default function Enthalpy() {
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
-      <div role="tablist" aria-label="Mode" style={{ display: 'flex' }}>
-        {(['bond', 'hess'] as const).map((m, i) => {
-          const active = mode === m;
-          return (
-            <button
-              key={m}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setMode(m)}
-              className="mono"
-              style={{
-                padding: '10px 16px', fontSize: 11, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {m === 'bond' ? 'Bond energy ΔH' : "Hess's Law"}
-            </button>
-          );
-        })}
-      </div>
+      <SlideTabs<'bond' | 'hess'>
+        tabs={[
+          { id: 'bond', label: 'Bond energy ΔH' },
+          { id: 'hess', label: "Hess's Law" },
+        ]}
+        value={mode}
+        onChange={setMode}
+      />
 
       {mode === 'bond' ? <BondEnergyMode /> : <HessMode />}
 
@@ -223,32 +206,12 @@ function BondEnergyMode() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Reaction tabs */}
-      <div role="tablist" aria-label="Reaction" style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {BE_REACTIONS.map((r, i) => {
-          const active = r.id === rxnId;
-          return (
-            <button
-              key={r.id}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setRxnId(r.id)}
-              className="mono"
-              style={{
-                padding: '8px 12px', fontSize: 10, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {r.label}
-            </button>
-          );
-        })}
-      </div>
+      <SlideTabs<string>
+        tabs={BE_REACTIONS.map(r => ({ id: r.id, label: r.label }))}
+        value={rxnId}
+        onChange={setRxnId}
+        size="sm"
+      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 12 }}>
         <div className="serif" style={{ fontSize: 24, fontStyle: 'italic' }}>{rxn.equation}</div>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ELEMENTS, CATEGORY_COLOR, type Element } from '../data/elements';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Orbital — electron-configuration + orbital-shape visualizer (Unit 1.4–1.7).
@@ -446,8 +447,10 @@ const SHAPE_TABS = ['1s', '2s', '2p_x', '2p_y', '2p_z', '3d_z²', '3d_xy', '3d_x
 function OrbitalShapes({ tab, setTab, accent, autoRotate }: {
   tab: string; setTab: (t: string) => void; accent: string; autoRotate: boolean;
 }) {
-  // Self-rotating wrapper using requestAnimationFrame.
-  const [angle, setAngle] = useState(0);
+  const [yaw, setYaw] = useState(0);
+  const [pitch, setPitch] = useState(-22 * Math.PI / 180);
+  const dragRef = useRef<{ x: number; y: number; yaw: number; pitch: number } | null>(null);
+
   useEffect(() => {
     if (!autoRotate) return;
     let raf = 0; let last = performance.now();
@@ -455,15 +458,29 @@ function OrbitalShapes({ tab, setTab, accent, autoRotate }: {
       if (!document.hidden) {
         const dt = (now - last) / 1000;
         last = now;
-        setAngle(a => (a + dt * 28) % 360);
-      } else {
-        last = now;
-      }
+        if (!dragRef.current) setYaw(a => (a + dt * 0.55) % (Math.PI * 2));
+      } else { last = now; }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [autoRotate]);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.currentTarget as unknown as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = { x: e.clientX, y: e.clientY, yaw, pitch };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const dx = e.clientX - dragRef.current.x;
+    const dy = e.clientY - dragRef.current.y;
+    setYaw(dragRef.current.yaw + dx * 0.01);
+    setPitch(Math.max(-Math.PI / 2 + 0.05, Math.min(0.5, dragRef.current.pitch + dy * 0.01)));
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (dragRef.current) (e.currentTarget as unknown as HTMLElement).releasePointerCapture(e.pointerId);
+    dragRef.current = null;
+  };
 
   return (
     <div style={{
@@ -471,64 +488,59 @@ function OrbitalShapes({ tab, setTab, accent, autoRotate }: {
       borderRadius: 6, padding: 18,
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
-        <div className="eyebrow">Orbital shape · ψ² isosurface</div>
+        <div className="eyebrow">Orbital shape · ψ² isosurface · 3D</div>
         <div className="mono" style={{ fontSize: 10, color: 'var(--paper-faint)' }}>
-          {orbitalDescription(tab)}
+          {orbitalDescription(tab)} · drag to rotate
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0, marginBottom: 14 }}>
-        {SHAPE_TABS.map((t, i) => {
-          const active = t === tab;
-          return (
-            <button key={t} onClick={() => setTab(t)} className="mono"
-              style={{
-                padding: '7px 10px', fontSize: 10, letterSpacing: '0.1em',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400, cursor: 'pointer',
-              }}>{t}</button>
-          );
-        })}
+      <div style={{ marginBottom: 14 }}>
+        <SlideTabs<string>
+          tabs={SHAPE_TABS.map(t => ({ id: t, label: t }))}
+          value={tab}
+          onChange={setTab}
+          size="sm"
+        />
       </div>
 
       <div style={{
         background: 'var(--ink-2)', borderRadius: 4,
-        aspectRatio: '2.4 / 1', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        <svg viewBox="-100 -50 200 100" style={{ width: '100%', height: '100%' }}>
+        aspectRatio: '2.4 / 1', position: 'relative', overflow: 'hidden',
+        cursor: dragRef.current ? 'grabbing' : 'grab', touchAction: 'none',
+      }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+      >
+        <svg viewBox="-120 -50 240 100" style={{ width: '100%', height: '100%', display: 'block' }}>
           <defs>
-            <radialGradient id="lobe-pos" cx="0.35" cy="0.35">
-              <stop offset="0%" stopColor="#fff" stopOpacity="0.95" />
-              <stop offset="40%" stopColor={accent} stopOpacity="0.85" />
-              <stop offset="100%" stopColor={accent} stopOpacity="0.15" />
+            <radialGradient id="lobe-pos" cx="0.32" cy="0.3" r="0.75">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.98" />
+              <stop offset="35%" stopColor={accent} stopOpacity="0.92" />
+              <stop offset="100%" stopColor={accent} stopOpacity="0.18" />
             </radialGradient>
-            <radialGradient id="lobe-neg" cx="0.35" cy="0.35">
-              <stop offset="0%" stopColor="#fff" stopOpacity="0.9" />
-              <stop offset="40%" stopColor="#fbbf24" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.1" />
+            <radialGradient id="lobe-neg" cx="0.32" cy="0.3" r="0.75">
+              <stop offset="0%" stopColor="#fff7d6" stopOpacity="0.98" />
+              <stop offset="35%" stopColor="#fbbf24" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#a36a00" stopOpacity="0.15" />
             </radialGradient>
-            <radialGradient id="lobe-shell" cx="0.5" cy="0.5">
-              <stop offset="0%" stopColor={accent} stopOpacity="0.0" />
-              <stop offset="70%" stopColor={accent} stopOpacity="0.4" />
-              <stop offset="100%" stopColor={accent} stopOpacity="0" />
+            <radialGradient id="lobe-shell-pos" cx="0.4" cy="0.4" r="0.6">
+              <stop offset="0%" stopColor="#fff" stopOpacity="0.6" />
+              <stop offset="60%" stopColor={accent} stopOpacity="0.35" />
+              <stop offset="100%" stopColor={accent} stopOpacity="0.05" />
+            </radialGradient>
+            <radialGradient id="lobe-shell-neg" cx="0.4" cy="0.4" r="0.6">
+              <stop offset="0%" stopColor="#fff7d6" stopOpacity="0.55" />
+              <stop offset="60%" stopColor="#fbbf24" stopOpacity="0.32" />
+              <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.04" />
+            </radialGradient>
+            <radialGradient id="torus-grad" cx="0.5" cy="0.5" r="0.6">
+              <stop offset="0%" stopColor={accent} stopOpacity="0.55" />
+              <stop offset="100%" stopColor={accent} stopOpacity="0.08" />
             </radialGradient>
           </defs>
-          {/* Cartesian axes */}
-          <g stroke="rgba(245,241,232,0.18)" strokeWidth="0.4">
-            <line x1="-90" y1="0" x2="90" y2="0" />
-            <line x1="0" y1="-45" x2="0" y2="45" />
-          </g>
-          <g fontFamily="JetBrains Mono" fontSize="5" fill="rgba(245,241,232,0.4)">
-            <text x="92" y="2">x</text>
-            <text x="-2" y="-46">z</text>
-          </g>
-          <g transform={`rotate(${angle * 0.5})`}>
-            {renderShape(tab)}
-          </g>
+          {render3D(tab, yaw, pitch, accent)}
         </svg>
       </div>
 
@@ -567,83 +579,214 @@ function orbitalDescription(tab: string): string {
   return map[tab] ?? '';
 }
 
-function renderShape(tab: string): React.ReactNode {
-  // 1s — single sphere
-  if (tab === '1s') {
-    return <ellipse cx="0" cy="0" rx="26" ry="26" fill="url(#lobe-pos)" />;
+// ───── 3D rendering helpers ─────
+type Vec3 = [number, number, number];
+type Lobe = { dir: Vec3; sign: 1 | -1; len: number; width: number };
+
+function n3(v: Vec3): Vec3 {
+  const m = Math.hypot(v[0], v[1], v[2]) || 1;
+  return [v[0] / m, v[1] / m, v[2] / m];
+}
+function rotZ([x, y, z]: Vec3, a: number): Vec3 {
+  const c = Math.cos(a), s = Math.sin(a);
+  return [c * x - s * y, s * x + c * y, z];
+}
+function rotX([x, y, z]: Vec3, a: number): Vec3 {
+  const c = Math.cos(a), s = Math.sin(a);
+  return [x, c * y - s * z, s * y + c * z];
+}
+function projectPoint(p: Vec3, yaw: number, pitch: number) {
+  const a = rotZ(p, yaw);
+  const b = rotX(a, pitch);
+  // Camera at +y looking toward origin. Screen: x right, -z up. Depth: larger b[1] → closer.
+  return { x: b[0], y: -b[2], depth: b[1] };
+}
+
+function lobesFor(tab: string): Lobe[] {
+  const L = 44, W = 24;
+  switch (tab) {
+    case '2p_x': return [
+      { dir: [1, 0, 0], sign: 1, len: L, width: W },
+      { dir: [-1, 0, 0], sign: -1, len: L, width: W },
+    ];
+    case '2p_y': return [
+      { dir: [0, 1, 0], sign: 1, len: L, width: W },
+      { dir: [0, -1, 0], sign: -1, len: L, width: W },
+    ];
+    case '2p_z': return [
+      { dir: [0, 0, 1], sign: 1, len: L, width: W },
+      { dir: [0, 0, -1], sign: -1, len: L, width: W },
+    ];
+    case '3d_z²': return [
+      { dir: [0, 0, 1], sign: 1, len: L, width: W * 0.95 },
+      { dir: [0, 0, -1], sign: 1, len: L, width: W * 0.95 },
+    ];
+    case '3d_xy': return [
+      { dir: n3([1, 1, 0]), sign: 1, len: L * 0.9, width: W },
+      { dir: n3([-1, -1, 0]), sign: 1, len: L * 0.9, width: W },
+      { dir: n3([1, -1, 0]), sign: -1, len: L * 0.9, width: W },
+      { dir: n3([-1, 1, 0]), sign: -1, len: L * 0.9, width: W },
+    ];
+    case '3d_xz': return [
+      { dir: n3([1, 0, 1]), sign: 1, len: L * 0.9, width: W },
+      { dir: n3([-1, 0, -1]), sign: 1, len: L * 0.9, width: W },
+      { dir: n3([1, 0, -1]), sign: -1, len: L * 0.9, width: W },
+      { dir: n3([-1, 0, 1]), sign: -1, len: L * 0.9, width: W },
+    ];
+    case '3d_yz': return [
+      { dir: n3([0, 1, 1]), sign: 1, len: L * 0.9, width: W },
+      { dir: n3([0, -1, -1]), sign: 1, len: L * 0.9, width: W },
+      { dir: n3([0, 1, -1]), sign: -1, len: L * 0.9, width: W },
+      { dir: n3([0, -1, 1]), sign: -1, len: L * 0.9, width: W },
+    ];
+    case '3d_x²−y²': return [
+      { dir: [1, 0, 0], sign: 1, len: L, width: W },
+      { dir: [-1, 0, 0], sign: 1, len: L, width: W },
+      { dir: [0, 1, 0], sign: -1, len: L, width: W },
+      { dir: [0, -1, 0], sign: -1, len: L, width: W },
+    ];
+    default: return [];
   }
-  // 2s — sphere with inner shell (radial node)
-  if (tab === '2s') {
-    return (
-      <>
-        <ellipse cx="0" cy="0" rx="36" ry="36" fill="url(#lobe-shell)" />
-        <ellipse cx="0" cy="0" rx="28" ry="28" fill="none" stroke={'rgba(245,241,232,0.35)'} strokeWidth="0.4" strokeDasharray="1.5 2" />
-        <ellipse cx="0" cy="0" rx="14" ry="14" fill="url(#lobe-neg)" />
-      </>
-    );
-  }
-  // 2p — dumbbell along an axis
-  if (tab.startsWith('2p')) {
-    const axis = tab.slice(-1);
-    // For x: lobes left/right; y: into-page (depict tilted); z: top/bottom
-    if (axis === 'x') {
-      return (
-        <>
-          <ellipse cx="-22" cy="0" rx="22" ry="14" fill="url(#lobe-pos)" />
-          <ellipse cx="22"  cy="0" rx="22" ry="14" fill="url(#lobe-neg)" />
-        </>
-      );
-    }
-    if (axis === 'z') {
-      return (
-        <>
-          <ellipse cx="0" cy="-20" rx="14" ry="22" fill="url(#lobe-pos)" />
-          <ellipse cx="0" cy="20"  rx="14" ry="22" fill="url(#lobe-neg)" />
-        </>
-      );
-    }
-    // y — depict perspective dumbbell
-    return (
-      <>
-        <ellipse cx="-14" cy="6" rx="18" ry="11" fill="url(#lobe-pos)" transform="rotate(-25)" />
-        <ellipse cx="14"  cy="-6" rx="18" ry="11" fill="url(#lobe-neg)" transform="rotate(-25)" />
-      </>
-    );
-  }
-  // 3d_z² — donut + axial lobes
-  if (tab === '3d_z²') {
-    return (
-      <>
-        <ellipse cx="0" cy="0" rx="34" ry="9" fill="url(#lobe-shell)" />
-        <ellipse cx="0" cy="0" rx="34" ry="9" fill="none" stroke={'rgba(245,241,232,0.3)'} strokeWidth="0.5" />
-        <ellipse cx="0" cy="-22" rx="10" ry="20" fill="url(#lobe-pos)" />
-        <ellipse cx="0" cy="22"  rx="10" ry="20" fill="url(#lobe-pos)" />
-      </>
-    );
-  }
-  // 3d clovers — four lobes
-  if (tab === '3d_xy' || tab === '3d_xz' || tab === '3d_yz') {
-    // Lobes between axes: rotated 45°
-    return (
-      <g transform="rotate(45)">
-        <ellipse cx="-22" cy="0" rx="20" ry="11" fill="url(#lobe-pos)" />
-        <ellipse cx="22"  cy="0" rx="20" ry="11" fill="url(#lobe-pos)" />
-        <ellipse cx="0" cy="-22" rx="11" ry="20" fill="url(#lobe-neg)" />
-        <ellipse cx="0" cy="22"  rx="11" ry="20" fill="url(#lobe-neg)" />
+}
+
+type Item = { depth: number; node: React.ReactNode; key: string };
+
+function renderLobe(lobe: Lobe, yaw: number, pitch: number, idx: number): Item {
+  // Lobe modeled as prolate ellipsoid: semi-axis len/2 along dir, width/2 perpendicular.
+  // Center sits at dir * (len/2) so the lobe touches the origin.
+  const a = lobe.len / 2;
+  const b = lobe.width / 2;
+  const center3: Vec3 = [lobe.dir[0] * a, lobe.dir[1] * a, lobe.dir[2] * a];
+  const c = projectPoint(center3, yaw, pitch);
+  const d = rotX(rotZ(lobe.dir, yaw), pitch);
+  // Foreshortening: s = sin(angle between dir and view axis) = component in screen plane.
+  const sx = d[0], sy = -d[2];
+  const sLen = Math.hypot(sx, sy);
+  const cLen = Math.abs(d[1]); // component along view (y-axis)
+  // Projected ellipse along projected direction: rx_along = sqrt((a*sLen)² + (b*cLen)²)
+  const rxAlong = Math.sqrt((a * sLen) ** 2 + (b * cLen) ** 2);
+  const ryPerp = b;
+  const angleDeg = (Math.atan2(sy, sx) * 180) / Math.PI;
+  const grad = lobe.sign === 1 ? 'url(#lobe-pos)' : 'url(#lobe-neg)';
+  return {
+    depth: c.depth,
+    key: `lobe-${idx}`,
+    node: (
+      <g key={`lobe-${idx}`} transform={`translate(${c.x} ${c.y}) rotate(${angleDeg})`}>
+        <ellipse cx="0" cy="0" rx={rxAlong} ry={ryPerp} fill={grad} />
       </g>
-    );
+    ),
+  };
+}
+
+function renderSphere(radius: number, sign: 1 | -1, key: string, shell: boolean): Item {
+  const grad = shell
+    ? (sign === 1 ? 'url(#lobe-shell-pos)' : 'url(#lobe-shell-neg)')
+    : (sign === 1 ? 'url(#lobe-pos)' : 'url(#lobe-neg)');
+  return {
+    depth: 0,
+    key,
+    node: <circle key={key} cx="0" cy="0" r={radius} fill={grad} />,
+  };
+}
+
+function renderTorus(R: number, halfWidth: number, yaw: number, pitch: number, key: string): Item {
+  const N = 56;
+  const outer: { x: number; y: number }[] = [];
+  const inner: { x: number; y: number }[] = [];
+  for (let i = 0; i <= N; i++) {
+    const t = (i / N) * Math.PI * 2;
+    const ro = R + halfWidth, ri = R - halfWidth;
+    outer.push(projectPoint([ro * Math.cos(t), ro * Math.sin(t), 0], yaw, pitch));
+    inner.push(projectPoint([ri * Math.cos(t), ri * Math.sin(t), 0], yaw, pitch));
   }
-  if (tab === '3d_x²−y²') {
-    return (
-      <>
-        <ellipse cx="-26" cy="0" rx="22" ry="11" fill="url(#lobe-pos)" />
-        <ellipse cx="26"  cy="0" rx="22" ry="11" fill="url(#lobe-pos)" />
-        <ellipse cx="0" cy="-22" rx="11" ry="20" fill="url(#lobe-neg)" />
-        <ellipse cx="0" cy="22"  rx="11" ry="20" fill="url(#lobe-neg)" />
-      </>
-    );
+  let d = `M ${outer[0].x} ${outer[0].y}`;
+  for (let i = 1; i <= N; i++) d += ` L ${outer[i].x} ${outer[i].y}`;
+  d += ` L ${inner[N].x} ${inner[N].y}`;
+  for (let i = N - 1; i >= 0; i--) d += ` L ${inner[i].x} ${inner[i].y}`;
+  d += ' Z';
+  return {
+    depth: 0,
+    key,
+    node: <path key={key} d={d} fill="url(#torus-grad)" />,
+  };
+}
+
+function renderAxis(axis: 'x' | 'y' | 'z', yaw: number, pitch: number): Item[] {
+  const len = 56;
+  const dirs: Record<string, Vec3> = { x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1] };
+  const d = dirs[axis];
+  const ends: { sign: 1 | -1; tip: Vec3 }[] = [
+    { sign: 1, tip: [d[0] * len, d[1] * len, d[2] * len] },
+    { sign: -1, tip: [-d[0] * len, -d[1] * len, -d[2] * len] },
+  ];
+  const items: Item[] = [];
+  for (const { sign, tip } of ends) {
+    const p = projectPoint(tip, yaw, pitch);
+    const mid = projectPoint([tip[0] / 2, tip[1] / 2, tip[2] / 2], yaw, pitch);
+    items.push({
+      depth: mid.depth,
+      key: `axis-${axis}-${sign}`,
+      node: (
+        <line key={`axis-${axis}-${sign}`} x1="0" y1="0" x2={p.x} y2={p.y}
+          stroke="rgba(245,241,232,0.18)" strokeWidth="0.4" />
+      ),
+    });
+    if (sign === 1) {
+      items.push({
+        depth: p.depth + 0.01,
+        key: `axis-label-${axis}`,
+        node: (
+          <text key={`axis-label-${axis}`} x={p.x + (axis === 'x' ? 3 : 0)} y={p.y + (axis === 'z' ? -2 : 5)}
+            fontSize="6" fontFamily="JetBrains Mono" fill="rgba(245,241,232,0.55)">
+            {axis}
+          </text>
+        ),
+      });
+    }
   }
-  return null;
+  return items;
+}
+
+function render3D(tab: string, yaw: number, pitch: number, accent: string): React.ReactNode {
+  const items: Item[] = [];
+
+  // Axes — split into +/- halves so they depth-sort with the lobes.
+  items.push(...renderAxis('x', yaw, pitch));
+  items.push(...renderAxis('y', yaw, pitch));
+  items.push(...renderAxis('z', yaw, pitch));
+
+  if (tab === '1s') {
+    items.push(renderSphere(22, 1, '1s-core', false));
+  } else if (tab === '2s') {
+    // Outer faint shell (positive ψ outside the radial node) + inner core (sign change).
+    items.push(renderSphere(34, 1, '2s-outer', true));
+    items.push({
+      depth: 0,
+      key: '2s-node',
+      node: <circle cx="0" cy="0" r="22" fill="none"
+        stroke={'rgba(245,241,232,0.35)'} strokeWidth="0.4" strokeDasharray="1.5 2" />,
+    });
+    items.push(renderSphere(14, -1, '2s-inner', false));
+  } else if (tab === '3d_z²') {
+    items.push(renderTorus(24, 4, yaw, pitch, '3dz2-torus'));
+    const lobes = lobesFor(tab);
+    lobes.forEach((l, i) => items.push(renderLobe(l, yaw, pitch, i)));
+  } else {
+    const lobes = lobesFor(tab);
+    lobes.forEach((l, i) => items.push(renderLobe(l, yaw, pitch, i)));
+  }
+
+  // Origin marker — tiny nucleus dot. Drawn near front.
+  items.push({
+    depth: 0.001,
+    key: 'origin',
+    node: <circle key="origin" cx="0" cy="0" r="1.2" fill={accent} opacity="0.6" />,
+  });
+
+  // Sort back-to-front (smaller depth first since larger depth = closer to camera).
+  items.sort((a, b) => a.depth - b.depth);
+  return <>{items.map(it => it.node)}</>;
 }
 
 // ───── Small UI atoms ─────

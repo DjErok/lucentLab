@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Redox — interactive electron-transfer simulator.
@@ -168,29 +170,11 @@ export default function Redox() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Reaction selector */}
-      <div role="tablist" aria-label="Reaction" style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {REACTIONS.map((r, i) => {
-          const active = r.id === rxnId;
-          return (
-            <button
-              key={r.id}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setRxnId(r.id)}
-              className="mono"
-              style={{
-                padding: '10px 16px', fontSize: 11, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400, cursor: 'pointer',
-              }}
-            >{r.label}</button>
-          );
-        })}
-      </div>
+      <SlideTabs<string>
+        tabs={REACTIONS.map(r => ({ id: r.id, label: r.label }))}
+        value={rxnId}
+        onChange={setRxnId}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
         <div className="serif" style={{ fontSize: 24, fontStyle: 'italic' }}>{rxn.equation}</div>
@@ -278,15 +262,9 @@ export default function Redox() {
             <ControlBtn onClick={() => { setRunning(false); setHopsDone(0); setHopProgress(0); setStepIdx(-1); }}>■ Reset</ControlBtn>
           </div>
 
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span className="eyebrow">Hop speed</span>
-              <span className="mono" style={{ fontSize: 11, color: 'var(--phos)' }}>{speed.toFixed(2)}×</span>
-            </div>
-            <input type="range" min={0.25} max={3} step={0.05} value={speed}
-                   onChange={(e) => setSpeed(Number(e.target.value))}
-                   style={{ width: '100%', accentColor: 'var(--phos)' }} />
-          </div>
+          <UISlider label="Hop speed" value={speed} min={0.25} max={3} step={0.05}
+                    onChange={setSpeed} accent="var(--phos)"
+                    format={(v) => `${v.toFixed(2)}×`} />
         </div>
       </div>
 

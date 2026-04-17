@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Beer–Lambert spectrophotometer.  A(λ) = ε(λ)·b·c, T = I/I₀ = 10^(-A).
@@ -102,25 +104,21 @@ export default function BeerLambert() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Solution tabs */}
-      <div role="tablist" aria-label="Solution" style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {SOLUTIONS.map((s, i) => {
-          const active = s.id === solId;
-          return (
-            <button key={s.id} role="tab" aria-selected={active} onClick={() => setSolId(s.id)} className="mono"
-              style={{ padding: '10px 16px', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)', borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 8 }}>
+      <SlideTabs<string>
+        tabs={SOLUTIONS.map(s => ({
+          id: s.id,
+          label: (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 10, height: 10, borderRadius: '50%',
                 background: wlToHex(complementOf(s.lambdaMax)),
                 boxShadow: `0 0 6px ${wlToHex(complementOf(s.lambdaMax))}` }} />
               {(s.short ?? s.name.split(' ')[0])} · {wavelengthName(complementOf(s.lambdaMax))}
-            </button>
-          );
-        })}
-      </div>
+            </span>
+          ),
+        }))}
+        value={solId}
+        onChange={setSolId}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
         <div className="serif" style={{ fontSize: 24, fontStyle: 'italic' }}>
@@ -615,17 +613,9 @@ function Slider({
   unit: string; decimals?: number; accent: string; onChange: (n: number) => void;
 }) {
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="eyebrow">{label}</span>
-        <span className="mono" style={{ fontSize: 11, color: accent }}>
-          {value.toFixed(decimals)} {unit}
-        </span>
-      </div>
-      <input type="range" min={min} max={max} step={step} value={value}
-             onChange={(e) => onChange(Number(e.target.value))}
-             style={{ width: '100%', accentColor: accent }} />
-    </div>
+    <UISlider label={label} value={value} min={min} max={max} step={step}
+              onChange={onChange} accent={accent}
+              format={(v) => `${v.toFixed(decimals)} ${unit}`} />
   );
 }
 

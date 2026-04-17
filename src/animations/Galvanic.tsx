@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Galvanic (voltaic) cell — interactive AP-Chem grade simulator.
@@ -128,32 +130,11 @@ export default function Galvanic() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* ───── Cell selector tabs ───── */}
-      <div role="tablist" aria-label="Cell" style={{ display: 'flex', gap: 0, flexWrap: 'wrap' }}>
-        {CELLS.map((c, i) => {
-          const active = c.id === cellId;
-          return (
-            <button
-              key={c.id}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setCellId(c.id)}
-              className="mono"
-              style={{
-                padding: '10px 16px', fontSize: 11, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {c.label}
-            </button>
-          );
-        })}
-      </div>
+      <SlideTabs<string>
+        tabs={CELLS.map(c => ({ id: c.id, label: c.label }))}
+        value={cellId}
+        onChange={setCellId}
+      />
 
       {/* ───── Header line ───── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
@@ -617,15 +598,9 @@ function Slider({ label, value, min, max, step, onChange, accent, display }: {
   onChange: (v: number) => void; accent: string; display?: string;
 }) {
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="eyebrow">{label}</span>
-        <span className="mono" style={{ fontSize: 11, color: accent }}>{display ?? String(value)}</span>
-      </div>
-      <input type="range" min={min} max={max} step={step} value={value}
-             onChange={(e) => onChange(Number(e.target.value))}
-             style={{ width: '100%', accentColor: accent }} />
-    </div>
+    <UISlider label={label} value={value} min={min} max={max} step={step}
+              onChange={onChange} accent={accent}
+              format={display !== undefined ? () => display : (v) => String(v)} />
   );
 }
 

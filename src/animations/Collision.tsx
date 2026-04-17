@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
 
 /**
  * Collision Theory + Maxwell-Boltzmann distribution.
@@ -498,17 +499,9 @@ function Slider({ label, unit, value, min, max, step, onChange, accent }: {
   onChange: (n: number) => void; accent: string;
 }) {
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="eyebrow">{label}</span>
-        <span className="mono" style={{ fontSize: 11, color: accent }}>
-          {Number.isInteger(value) ? value : value.toFixed(2)} {unit}
-        </span>
-      </div>
-      <input type="range" min={min} max={max} step={step} value={value}
-             onChange={(e) => onChange(Number(e.target.value))}
-             style={{ width: '100%', accentColor: accent }} />
-    </div>
+    <UISlider label={label} value={value} min={min} max={max} step={step}
+              onChange={onChange} accent={accent} unit={` ${unit}`}
+              format={(v) => `${Number.isInteger(v) ? v : v.toFixed(2)} ${unit}`} />
   );
 }
 

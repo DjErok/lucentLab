@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 
 /**
  * Slider — Lucent Lab's pure-CSS-var equivalent of the 21st.dev Feedback

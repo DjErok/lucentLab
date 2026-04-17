@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Buffer — interactive simulation of how a conjugate weak-acid / weak-base
@@ -152,7 +154,6 @@ export default function Buffer() {
   const ratio = HA > 0 ? A / HA : Infinity;
   const capacity = Math.min(HA, A);
   const headroomAcid = A;          // moles strong acid still neutralizable
-  const headroomBase = HA;         // moles strong base still neutralizable
 
   const totalStress = acidDose + baseDose;
   const status: 'OK' | 'WEAK' | 'EXHAUSTED' =
@@ -165,32 +166,11 @@ export default function Buffer() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Pair selector */}
-      <div role="tablist" aria-label="Conjugate pair" style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {PAIRS.map((p, i) => {
-          const active = p.id === pairId;
-          return (
-            <button
-              key={p.id}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setPairId(p.id)}
-              className="mono"
-              style={{
-                padding: '10px 16px', fontSize: 11, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {p.label} · pKa {p.pKa.toFixed(2)}
-            </button>
-          );
-        })}
-      </div>
+      <SlideTabs<PairId>
+        tabs={PAIRS.map(p => ({ id: p.id, label: `${p.label} · pKa ${p.pKa.toFixed(2)}` }))}
+        value={pairId}
+        onChange={setPairId}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
         <div className="serif" style={{ fontSize: 24, fontStyle: 'italic' }}>
@@ -571,17 +551,9 @@ function Slider({ label, value, onChange, min, max, accent }:
   { label: string; value: number; onChange: (v: number) => void; min: number; max: number; accent: string; }
 ) {
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="eyebrow">{label}</span>
-        <span className="mono" style={{ fontSize: 11, color: accent }}>{value}</span>
-      </div>
-      <input
-        type="range" min={min} max={max} step={1} value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        style={{ width: '100%', accentColor: accent }}
-      />
-    </div>
+    <UISlider label={label} value={value} min={min} max={max} step={1}
+              onChange={onChange} accent={accent}
+              format={(v) => Number.isInteger(v) ? `${v}` : v.toFixed(2)} />
   );
 }
 

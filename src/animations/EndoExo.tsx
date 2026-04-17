@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Endothermic vs Exothermic — PhET-grade interactive.
@@ -233,36 +235,22 @@ export default function EndoExo() {
       </div>
 
       {/* Reaction selector */}
-      <div role="tablist" style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {REACTIONS.map((r, i) => {
-          const active = r.id === rxnId;
-          return (
-            <button
-              key={r.id}
-              role="tab"
-              aria-selected={active}
-              onClick={() => { setRxnId(r.id); setT(0); }}
-              className="mono"
-              style={{
-                padding: '10px 14px', fontSize: 11, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeftWidth: i === 0 ? 1 : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
+      <SlideTabs<string>
+        tabs={REACTIONS.map(r => ({
+          id: r.id,
+          label: (
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
               <span style={{
                 display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
-                background: r.mode === 'exo' ? C.hot : C.cool, marginRight: 8, verticalAlign: 'middle',
+                background: r.mode === 'exo' ? C.hot : C.cool, marginRight: 8,
               }} />
               {r.label}
-            </button>
-          );
-        })}
-      </div>
+            </span>
+          ),
+        }))}
+        value={rxnId}
+        onChange={(id) => { setRxnId(id); setT(0); }}
+      />
 
       {/* Equation + ΔH */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 12 }}>
@@ -278,18 +266,17 @@ export default function EndoExo() {
           {playing ? '❚❚ pause' : '▶ play'}
         </button>
         <button onClick={() => { setT(0); setPlaying(true); }} className="mono" style={ctrlBtn()}>↻ restart</button>
-        <span className="eyebrow">Speed</span>
-        <input type="range" min={0.05} max={1.5} step={0.05} value={speed}
-               onChange={e => setSpeed(Number(e.target.value))}
-               style={{ width: 160, accentColor: 'var(--phos)' }} />
-        <span className="mono" style={{ fontSize: 12, color: 'var(--phos)', width: 50 }}>{speed.toFixed(2)}×</span>
+        <div style={{ minWidth: 200 }}>
+          <UISlider label="Speed" value={speed} min={0.05} max={1.5} step={0.05}
+                    onChange={setSpeed} accent="var(--phos)"
+                    format={(v) => `${v.toFixed(2)}×`} />
+        </div>
 
-        <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="eyebrow">ξ</span>
-          <input type="range" min={0} max={1} step={0.001} value={t}
-                 onChange={e => { setT(Number(e.target.value)); setPlaying(false); }}
-                 style={{ flex: 1, accentColor: mode === 'exo' ? C.hot : C.cool }} />
-          <span className="mono" style={{ fontSize: 11, color: 'var(--paper-dim)', width: 56 }}>{(t * 100).toFixed(0)}%</span>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <UISlider label="ξ" value={t} min={0} max={1} step={0.001}
+                    onChange={(v) => { setT(v); setPlaying(false); }}
+                    accent={mode === 'exo' ? C.hot : C.cool}
+                    format={(v) => `${(v * 100).toFixed(0)}%`} />
         </div>
       </div>
 

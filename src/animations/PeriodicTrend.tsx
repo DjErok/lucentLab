@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ELEMENTS, EXTRA } from '../data/elements';
 import type { Element } from '../data/elements';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Periodic trends visualizer — full 118-element table.
@@ -56,31 +57,11 @@ export default function PeriodicTrend() {
   return (
     <div style={{ display: 'grid', gap: 18 }}>
       {/* Trend selector */}
-      <div role="tablist" aria-label="Periodic trend" style={{ display: 'flex', gap: 0, flexWrap: 'wrap' }}>
-        {(Object.keys(META) as Trend[]).map((k, i) => {
-          const active = trend === k;
-          return (
-            <button
-              key={k}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setTrend(k)}
-              className="mono"
-              style={{
-                padding: '10px 16px', fontSize: 11, letterSpacing: '0.16em',
-                textTransform: 'uppercase', border: '1px solid var(--line-strong)',
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                borderLeftWidth: i === 0 ? 1 : 0,
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {META[k].name}
-            </button>
-          );
-        })}
-      </div>
+      <SlideTabs<Trend>
+        tabs={(Object.keys(META) as Trend[]).map(k => ({ id: k, label: META[k].name }))}
+        value={trend}
+        onChange={setTrend}
+      />
 
       {/* Caption: rule + global extremes */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
@@ -233,7 +214,6 @@ function SubRow({ elements, marker, trendVal, vmin, vmax, accent, hover, setHove
   vmin: number; vmax: number; accent: string;
   hover: number | null; setHover: (z: number) => void;
 }) {
-  const startZ = elements[0]?.z ?? 0;
   return (
     <div style={{ marginTop: 10 }}>
       <div className="mono" style={{ fontSize: 9, color: 'var(--paper-faint)', letterSpacing: '0.14em', marginBottom: 4, paddingLeft: 4 }}>

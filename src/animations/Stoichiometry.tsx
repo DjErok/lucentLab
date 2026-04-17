@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Stoichiometry — interactive limiting-reagent simulator.
@@ -124,32 +126,11 @@ export default function Stoichiometry() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Reaction selector */}
-      <div role="tablist" aria-label="Reaction" style={{ display: 'flex', gap: 0, flexWrap: 'wrap' }}>
-        {REACTIONS.map((r, i) => {
-          const active = r.id === rxnId;
-          return (
-            <button
-              key={r.id}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setRxnId(r.id)}
-              className="mono"
-              style={{
-                padding: '10px 16px', fontSize: 11, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {r.label}
-            </button>
-          );
-        })}
-      </div>
+      <SlideTabs<string>
+        tabs={REACTIONS.map(r => ({ id: r.id, label: r.label }))}
+        value={rxnId}
+        onChange={setRxnId}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
         <div className="serif" style={{ fontSize: 24, fontStyle: 'italic' }}>{rxn.equation}</div>
@@ -202,7 +183,7 @@ export default function Stoichiometry() {
               key={r.id}
               label={`${r.name} · molecules`}
               value={safeCounts[r.id]}
-              onChange={(v) => { setCounts(c => ({ ...c, [r.id]: v })); resetTo(setProgress, setRunning); }}
+              onChange={(v: number) => { setCounts(c => ({ ...c, [r.id]: v })); resetTo(setProgress, setRunning); }}
               min={1}
               max={20}
               accent={r.color}
@@ -485,15 +466,9 @@ function ControlBtn({ children, onClick }: { children: React.ReactNode; onClick:
 
 function Slider({ label, value, onChange, min, max, accent }: any) {
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="eyebrow">{label}</span>
-        <span className="mono" style={{ fontSize: 11, color: accent }}>{value}</span>
-      </div>
-      <input type="range" min={min} max={max} step={1} value={value}
-             onChange={(e) => onChange(Number(e.target.value))}
-             style={{ width: '100%', accentColor: accent }} />
-    </div>
+    <UISlider label={label} value={value} min={min} max={max} step={1}
+              onChange={onChange} accent={accent}
+              format={(v) => Number.isInteger(v) ? `${v}` : v.toFixed(2)} />
   );
 }
 

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import UISlider from '../components/ui/Slider';
+import SlideTabs from '../components/ui/SlideTabs';
 
 /**
  * Acid–Base — Brønsted-Lowry proton transfer simulator.
@@ -129,32 +131,11 @@ export default function AcidBase() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Reaction selector */}
-      <div role="tablist" aria-label="Acid-Base combo" style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {COMBOS.map((c, i) => {
-          const active = c.id === comboId;
-          return (
-            <button
-              key={c.id}
-              role="tab"
-              aria-selected={active}
-              onClick={() => { setComboId(c.id); setPhase(0); }}
-              className="mono"
-              style={{
-                padding: '10px 16px', fontSize: 11, letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--line-strong)',
-                borderLeft: i === 0 ? '1px solid var(--line-strong)' : 0,
-                background: active ? 'var(--paper)' : 'transparent',
-                color: active ? 'var(--ink-0)' : 'var(--paper-dim)',
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {c.label}
-            </button>
-          );
-        })}
-      </div>
+      <SlideTabs<string>
+        tabs={COMBOS.map(c => ({ id: c.id, label: c.label }))}
+        value={comboId}
+        onChange={(id) => { setComboId(id); setPhase(0); }}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
         <div className="serif" style={{ fontSize: 24, fontStyle: 'italic' }}>
@@ -617,14 +598,7 @@ function Slider({ label, value, min, max, step, onChange, accent, fmt }: {
   onChange: (v: number) => void; accent: string; fmt: (v: number) => string;
 }) {
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="eyebrow">{label}</span>
-        <span className="mono" style={{ fontSize: 11, color: accent }}>{fmt(value)}</span>
-      </div>
-      <input type="range" min={min} max={max} step={step} value={value}
-             onChange={(e) => onChange(Number(e.target.value))}
-             style={{ width: '100%', accentColor: accent }} />
-    </div>
+    <UISlider label={label} value={value} min={min} max={max} step={step}
+              onChange={onChange} accent={accent} format={fmt} />
   );
 }

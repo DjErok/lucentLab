@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import UISlider from '../components/ui/Slider';
 
 /**
  * Phase changes: solid → liquid → gas
@@ -101,14 +102,18 @@ export default function PhaseChange() {
           <button onClick={() => setT(0.42)}  className="mono" style={ctrlBtn}>Liquid</button>
           <button onClick={() => setT(0.58)}  className="mono" style={ctrlBtn}>↑ Vaporize</button>
           <button onClick={() => setT(0.85)}  className="mono" style={ctrlBtn}>Gas</button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
-            <span className="mono" style={{ fontSize: 9, color: 'var(--paper-faint)', letterSpacing: '0.12em' }}>SPEED</span>
-            <input type="range" min={0.25} max={3} step={0.25} value={speed} onChange={e => setSpeed(Number(e.target.value))} style={{ width: 90, accentColor: 'var(--phos)' }} />
-            <span className="mono" style={{ fontSize: 11, color: 'var(--paper)', minWidth: 32 }}>{speed.toFixed(2)}×</span>
+          <div style={{ marginLeft: 'auto', minWidth: 200 }}>
+            <UISlider label="Speed" value={speed} min={0.25} max={3} step={0.25}
+                      onChange={setSpeed} accent="var(--phos)"
+                      format={(v) => `${v.toFixed(2)}×`} />
           </div>
         </div>
-        <input type="range" min={0} max={1} step={0.001} value={t} onChange={e => { setT(Number(e.target.value)); setRunning(false); }}
-               style={{ width: '100%', marginTop: 10, accentColor: phaseColor(phase) }} aria-label="Scrub heating curve" />
+        <div style={{ marginTop: 10 }}>
+          <UISlider label="Scrub heating curve" value={t} min={0} max={1} step={0.001}
+                    onChange={(v) => { setT(v); setRunning(false); }}
+                    accent={phaseColor(phase)}
+                    format={(v) => `${(v * 100).toFixed(0)}%`} />
+        </div>
 
         <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
           <Stat label="Phase" value={phase} accent={phaseColor(phase)} />

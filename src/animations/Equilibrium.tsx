@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import UISlider from '../components/ui/Slider';
 
 /**
  * Equilibrium — dynamic equilibrium and Le Châtelier's principle.
@@ -112,7 +113,7 @@ export default function Equilibrium() {
       const dt = rawDt * speedRef.current;
 
       // --- simulation canvas sizing (use CSS rect for physics) ---
-      const { rect: simRect, W: simW, H: simH } = syncCanvasSize(sim);
+      const { rect: simRect } = syncCanvasSize(sim);
       boxRef.current = { w: simRect.width, h: simRect.height };
       const { w, h } = boxRef.current;
 
@@ -388,15 +389,9 @@ export default function Equilibrium() {
           </div>
 
           <div style={{ ...panel, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div>
-              <div style={{ ...flexBetween, marginBottom: 4 }}>
-                <span className="eyebrow">Simulation speed</span>
-                <span className="mono" style={{ fontSize: 11, color: 'var(--paper)' }}>{speed.toFixed(2)}×</span>
-              </div>
-              <input type="range" min={0.25} max={4} step={0.05} value={speed}
-                     onChange={e => setSpeed(Number(e.target.value))}
-                     style={{ width: '100%', accentColor: 'var(--phos)' }} />
-            </div>
+            <UISlider label="Simulation speed" value={speed} min={0.25} max={4} step={0.05}
+                      onChange={setSpeed} accent="var(--phos)"
+                      format={(v) => `${v.toFixed(2)}×`} />
             <button onClick={resetSim} className="mono" style={{
               padding: '10px 14px', fontSize: 11, letterSpacing: '0.14em',
               textTransform: 'uppercase', border: '1px solid var(--line-strong)',
