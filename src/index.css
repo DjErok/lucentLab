@@ -1,0 +1,389 @@
+/* ============================================
+   Lucent Lab — AP Chemistry Atlas
+   Design system
+   ============================================ */
+
+:root {
+  /* Surfaces */
+  --ink-0: #0a0908;
+  --ink-1: #100e0c;
+  --ink-2: #16130f;
+  --ink-3: #1f1b15;
+  --ink-4: #2a241c;
+  --line: rgba(245, 241, 232, 0.10);
+  --line-strong: rgba(245, 241, 232, 0.22);
+
+  /* Foreground */
+  --paper: #f5f1e8;
+  --paper-dim: rgba(245, 241, 232, 0.62);
+  --paper-faint: rgba(245, 241, 232, 0.38);
+
+  /* Element-coded accents */
+  --hydrogen: #f0e6d2;
+  --oxygen:   #ff5b3c;
+  --nitrogen: #4ea8ff;
+  --carbon:   #2a241c;
+  --sulfur:   #f5c542;
+  --chlorine: #4ade80;
+  --sodium:   #c084fc;
+
+  /* Functional */
+  --hot:    #ff6b35;
+  --cool:   #5dd0ff;
+  --acid:   #fbbf24;
+  --base:   #a78bfa;
+  --plasma: #ff3d6d;
+  --phos:   #69e36b;
+
+  /* Type */
+  --serif: 'Fraunces', 'Times New Roman', serif;
+  --sans:  'Inter', -apple-system, sans-serif;
+  --mono:  'JetBrains Mono', 'Menlo', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--ink-0);
+  color: var(--paper);
+  font-family: var(--sans);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+}
+
+body {
+  background-image:
+    radial-gradient(1100px 600px at 80% -10%, rgba(255, 91, 60, 0.06), transparent 60%),
+    radial-gradient(900px 500px at 0% 100%, rgba(78, 168, 255, 0.05), transparent 60%);
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Subtle film grain */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  mix-blend-mode: overlay;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+a { color: inherit; text-decoration: none; }
+button { background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+img, svg { display: block; max-width: 100%; }
+
+/* Visible focus for keyboard users — never on mouse focus */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--oxygen);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Skip-to-content link — visually hidden until focused */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  z-index: 100;
+  background: var(--paper);
+  color: var(--ink-0);
+  padding: 10px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  transition: top 150ms ease;
+}
+.skip-link:focus {
+  top: 12px;
+  outline: 2px solid var(--oxygen);
+  outline-offset: 2px;
+}
+
+::selection { background: var(--oxygen); color: var(--ink-0); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--ink-0); }
+::-webkit-scrollbar-thumb { background: var(--ink-3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
+
+/* ============================================
+   Type utilities
+   ============================================ */
+
+.serif { font-family: var(--serif); font-optical-sizing: auto; }
+.mono  { font-family: var(--mono); }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+.smallcaps {
+  font-family: var(--serif);
+  font-feature-settings: "smcp";
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+.h-display {
+  font-family: var(--serif);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 0.95;
+}
+.h-display em { font-style: italic; font-weight: 300; }
+
+/* ============================================
+   Layout primitives
+   ============================================ */
+
+.shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+@media (max-width: 720px) {
+  .shell { padding: 0 18px; }
+}
+
+.hairline { height: 1px; background: var(--line); width: 100%; }
+.vline { width: 1px; background: var(--line); height: 100%; }
+
+.tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+.tag .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--paper-dim); }
+
+/* ============================================
+   Buttons
+   ============================================ */
+
+.btn {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 14px 22px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: all 200ms ease;
+  position: relative;
+  overflow: hidden;
+}
+.btn:hover { background: var(--paper); color: var(--ink-0); border-color: var(--paper); }
+.btn-ghost { border-color: var(--line); color: var(--paper-dim); }
+.btn-ghost:hover { color: var(--paper); border-color: var(--paper); background: transparent; }
+.btn-primary { background: var(--paper); color: var(--ink-0); border-color: var(--paper); }
+.btn-primary:hover { background: var(--oxygen); border-color: var(--oxygen); color: var(--ink-0); }
+
+/* ============================================
+   Reusable molecule / atom visuals
+   ============================================ */
+
+.atom {
+  border-radius: 50%;
+  position: absolute;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  font-weight: 500;
+  color: var(--ink-0);
+  box-shadow:
+    inset -2px -3px 6px rgba(0,0,0,0.30),
+    inset 2px 2px 6px rgba(255,255,255,0.35),
+    0 0 0 1px rgba(0,0,0,0.4),
+    0 8px 24px rgba(0,0,0,0.5);
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 0.8; }
+  50%      { box-shadow: 0 0 28px 4px currentColor; opacity: 1; }
+}
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes drawLine {
+  from { stroke-dashoffset: 1000; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.fade-up { animation: fadeUp 600ms cubic-bezier(0.2,0.7,0.2,1) forwards; }
+.fade-in { animation: fadeIn 600ms ease forwards; }
+
+/* ============================================
+   Reduced motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* Stop SVG SMIL animations */
+  animate, animateMotion, animateTransform { display: none; }
+}
+
+/* ============================================
+   Responsive utilities
+   ============================================ */
+
+/* Generic responsive grid helpers used by pages.
+   Pages opt in by adding these classes alongside their inline grid styles. */
+.grid-2-1\@md { /* "two columns to one column at md" */ }
+@media (max-width: 900px) {
+  .grid-2-1\@md { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 900px) {
+  .grid-3-2\@md { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 600px) {
+  .grid-3-2\@md, .grid-3-1\@sm { grid-template-columns: 1fr !important; }
+}
+
+/* Hide on small screens */
+@media (max-width: 900px) {
+  .hide\@md { display: none !important; }
+}
+
+/* ============================================
+   Page-specific responsive layouts
+   ============================================ */
+
+/* Landing page hero: collapse to single column */
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
+  .units-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .about-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+}
+@media (max-width: 600px) {
+  .units-grid { grid-template-columns: 1fr !important; }
+  .h-display { font-size: clamp(40px, 12vw, 64px) !important; }
+}
+
+/* Unit page header / topic index */
+@media (max-width: 900px) {
+  .unit-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+  .unit-prevnext { grid-template-columns: 1fr !important; }
+}
+
+/* AnimationFrame layout */
+@media (max-width: 900px) {
+  .animframe-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+/* Periodic table */
+.pt-cell:hover { transform: translateY(-1px); border-color: var(--paper) !important; }
+.pt-cell:focus-visible { transform: translateY(-1px); }
+@media (prefers-reduced-motion: reduce) {
+  .pt-cell:hover, .pt-cell:focus-visible { transform: none; }
+}
+@media (max-width: 900px) {
+  .pt-controls { flex-direction: column !important; align-items: stretch !important; }
+  .pt-controls input { margin-left: 0 !important; }
+  .pt-detail { grid-template-columns: 1fr !important; gap: 20px !important; }
+}
+
+/* Footer */
+@media (max-width: 720px) {
+  .footer-grid { flex-direction: column !important; gap: 28px !important; }
+}
+
+/* Section headers should stack on mobile */
+@media (max-width: 720px) {
+  .section-header { align-items: flex-start !important; }
+  .section-header > * { width: 100%; }
+}
+
+/* Unit cards — hover and keyboard-focus both trigger the highlight */
+.unit-card:hover,
+.unit-card:focus-visible {
+  border-color: var(--hue, var(--paper)) !important;
+  background: var(--ink-2) !important;
+}
+.unit-card:focus-visible {
+  outline: 2px solid var(--hue, var(--oxygen));
+  outline-offset: 2px;
+}
+
+/* Nav link underline-on-focus for keyboard users */
+.nav-link {
+  padding: 6px 2px;
+  border-bottom: 1px solid transparent;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+.nav-link:hover { color: var(--paper) !important; }
+.nav-link[aria-current="page"] { border-bottom-color: var(--oxygen); }
+
+/* Topic-index links on UnitPage */
+.topic-link:hover { background: var(--ink-2); color: var(--paper); }
+.topic-link:focus-visible { background: var(--ink-2); }
+
+/* Visually hidden but available to screen readers */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+
+/* Animation-specific responsive rules */
+@media (max-width: 720px) {
+  .ratelaw-cards { grid-template-columns: 1fr !important; }
+  /* Collapse any 2-col inline-style grid inside an animation to a single column.
+     JSX stringifies {gridTemplateColumns:'1fr 1fr'} → "grid-template-columns: 1fr 1fr". */
+  main div[style*="grid-template-columns: 1fr 1fr"],
+  main div[style*="gridTemplateColumns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
