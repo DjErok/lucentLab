@@ -30,6 +30,8 @@ type Cell = {
   cathodeColor: string;
 };
 
+type ViewMode = 'anode' | 'cathode' | 'full';
+
 // E°_cell = E°_red(cathode) − E°_red(anode)
 //        = E°_red(cathode) + E°_ox(anode)
 const CELLS: Cell[] = [
@@ -79,6 +81,7 @@ export default function Galvanic() {
   const [T, setT] = useState(298.15);          // K
   const [speed, setSpeed] = useState(1);
   const [running, setRunning] = useState(true);
+  const [viewMode, setViewMode] = useState<ViewMode>('full');
 
   // Reset concentrations when cell changes
   useEffect(() => { setCAnode(1); setCCathode(1); }, [cellId]);
@@ -136,6 +139,17 @@ export default function Galvanic() {
         onChange={setCellId}
       />
 
+      {/* ───── View mode tabs ───── */}
+      <SlideTabs<ViewMode>
+        tabs={[
+          { id: 'anode', label: 'Anode half-cell' },
+          { id: 'cathode', label: 'Cathode half-cell' },
+          { id: 'full', label: 'Full cell' },
+        ]}
+        value={viewMode}
+        onChange={setViewMode}
+      />
+
       {/* ───── Header line ───── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
         <div className="serif" style={{ fontSize: 22, fontStyle: 'italic' }}>
@@ -155,7 +169,13 @@ export default function Galvanic() {
           aspectRatio: '1.55 / 1',
           overflow: 'hidden',
         }}>
-          <CellScene cell={cell} k={k} Ecell={Ecell} cAnode={cAnode} cCathode={cCathode} spontaneous={spontaneous} />
+          <CellScene
+            cell={cell} k={k} Ecell={Ecell}
+            cAnode={cAnode} cCathode={cCathode}
+            spontaneous={spontaneous}
+            viewMode={viewMode}
+            aCoef={aCoef} cCoef={cCoef} nElec={n}
+          />
         </div>
 
         {/* Side panel: equation + readouts */}
@@ -291,9 +311,10 @@ export default function Galvanic() {
    ────────────────────────────────────────────────────────────────── */
 
 function CellScene({
-  cell, k, Ecell, cAnode, cCathode, spontaneous,
+  cell, k, Ecell, cAnode, cCathode, spontaneous, viewMode, aCoef, cCoef, nElec,
 }: {
   cell: Cell; k: number; Ecell: number; cAnode: number; cCathode: number; spontaneous: boolean;
+  viewMode: ViewMode; aCoef: number; cCoef: number; nElec: number;
 }) {
   // Geometry
   const W = 600, H = 400;
@@ -303,13 +324,10 @@ function CellScene({
   const anodeBarX = 130, cathodeBarX = 450;
   const barW = 22;
 
-  // Direction of flow: by convention spontaneous direction goes anode→cathode along the wire.
-  // If E_cell < 0 (driven backwards by user), reverse e⁻ visual direction.
+  // Direction of flow: spontaneous → anode-to-cathode along the wire.
   const dir = spontaneous ? 1 : -1;
   const k2 = ((dir > 0 ? k : (1 - k)) + 1) % 1;
 
-  // Wire path (left bar top → up → across → down → right bar top)
-  // We parameterize a piecewise path with total length used for electron position.
   const segments = useMemo(() => buildWirePath(anodeBarX, cathodeBarX, beakerTop, wireY, barW), [anodeBarX, cathodeBarX, beakerTop, wireY, barW]);
 
   // Salt bridge geometry (U-tube)
@@ -324,14 +342,33 @@ function CellScene({
   // Number of "in-flight" electrons in wire — proportional to current
   const nE = Math.max(3, Math.min(10, Math.round(3 + Math.abs(Ecell) * 4)));
 
+  // Offsets to center each half-cell in focused view mode
+  // Anode beaker center = anodeBeakerX + beakerW/2 = 140; SVG center = 300 → offset = +160
+  // Cathode beaker center = cathodeBeakerX + beakerW/2 = 460; SVG center = 300 → offset = -160
+  const anodeOffsetX = W / 2 - (anodeBeakerX + beakerW / 2);   // +160
+  const cathodeOffsetX = W / 2 - (cathodeBeakerX + beakerW / 2); // -160
+
+  // Half-reaction strings for focused view overlays
+  const anodeRxnText = `${aCoef > 1 ? aCoef + ' ' : ''}${cell.anodeMetal}(s) → ${aCoef > 1 ? aCoef + ' ' : ''}${cell.anodeIon} + ${nElec} e⁻`;
+  const cathodeRxnText = `${cCoef > 1 ? cCoef + ' ' : ''}${cell.cathodeIon} + ${nElec} e⁻ → ${cCoef > 1 ? cCoef + ' ' : ''}${cell.cathodeMetal}(s)`;
+
+  // Title text
+  const titleText = viewMode === 'anode'
+    ? `Anode half-cell · ${cell.anodeMetal} oxidation`
+    : viewMode === 'cathode'
+    ? `Cathode half-cell · ${cell.cathodeMetal} reduction`
+    : `Voltaic cell · ${cell.anodeMetal} / ${cell.cathodeIon}`;
+
   return (
     <>
       <div className="eyebrow" style={{ position: 'absolute', top: 14, left: 16, zIndex: 2 }}>
-        Voltaic cell · {cell.anodeMetal} / {cell.cathodeIon}
+        {titleText}
       </div>
-      <div className="mono" style={{ position: 'absolute', top: 14, right: 16, fontSize: 10, color: 'var(--paper-dim)', zIndex: 2 }}>
-        T-bridge ions · K⁺ → cathode · NO₃⁻ → anode
-      </div>
+      {viewMode === 'full' && (
+        <div className="mono" style={{ position: 'absolute', top: 14, right: 16, fontSize: 10, color: 'var(--paper-dim)', zIndex: 2 }}>
+          T-bridge ions · K⁺ → cathode · NO₃⁻ → anode
+        </div>
+      )}
 
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '100%' }}>
         <defs>
@@ -345,123 +382,165 @@ function CellScene({
           </linearGradient>
         </defs>
 
-        {/* Wire */}
-        <path d={segments.d} stroke="rgba(245,241,232,0.7)" strokeWidth="2.5" fill="none" />
+        {/* ── Full view only: wire, voltmeter, salt bridge, electrons ── */}
+        {viewMode === 'full' && (<>
+          {/* Wire */}
+          <path d={segments.d} stroke="rgba(245,241,232,0.7)" strokeWidth="2.5" fill="none" />
 
-        {/* Voltmeter */}
-        <g>
-          <circle cx={W / 2} cy={wireY} r="34" fill="var(--ink-2)" stroke="var(--line-strong)" />
-          <text x={W / 2} y={wireY - 4} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="12"
-                fill={spontaneous ? '#69e36b' : '#ff7a59'}>
-            {signed(Ecell)} V
-          </text>
-          <text x={W / 2} y={wireY + 12} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="9"
-                fill="rgba(245,241,232,0.55)" letterSpacing="0.14em">VOLTMETER</text>
-        </g>
+          {/* Voltmeter */}
+          <g>
+            <circle cx={W / 2} cy={wireY} r="34" fill="var(--ink-2)" stroke="var(--line-strong)" />
+            <text x={W / 2} y={wireY - 4} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="12"
+                  fill={spontaneous ? '#69e36b' : '#ff7a59'}>
+              {signed(Ecell)} V
+            </text>
+            <text x={W / 2} y={wireY + 12} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="9"
+                  fill="rgba(245,241,232,0.55)" letterSpacing="0.14em">VOLTMETER</text>
+          </g>
 
-        {/* Beakers */}
-        <Beaker x={anodeBeakerX} y={beakerTop} w={beakerW} h={beakerH} fillUrl="url(#g-an)" />
-        <Beaker x={cathodeBeakerX} y={beakerTop} w={beakerW} h={beakerH} fillUrl="url(#g-ca)" />
+          {/* Salt bridge (U-tube) */}
+          <SaltBridge leftX={sbLeftX} rightX={sbRightX} topY={sbY} innerY={sbInnerY} bottomY={beakerTop + 80} />
+          <text x={(sbLeftX + sbRightX) / 2} y={sbY - 6} textAnchor="middle" fontFamily="JetBrains Mono"
+                fontSize="10" fill="rgba(245,241,232,0.6)">salt bridge · KNO₃</text>
 
-        {/* Electrodes */}
-        <rect x={anodeBarX - barW / 2} y={beakerTop - 20} width={barW} height={beakerH - 40} fill={cell.anodeColor} />
-        <rect x={cathodeBarX - barW / 2} y={beakerTop - 20} width={barW} height={beakerH - 40} fill={cell.cathodeColor} />
-
-        {/* Polarity labels */}
-        <text x={anodeBarX} y={beakerTop - 28} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="14" fontWeight="600" fill={cell.anodeColor}>−</text>
-        <text x={cathodeBarX} y={beakerTop - 28} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="14" fontWeight="600" fill={cell.cathodeColor}>+</text>
-
-        {/* Bar labels */}
-        <text x={anodeBarX} y={H - 18} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="11" fill={cell.anodeColor}>
-          {cell.anodeMetal} (anode)
-        </text>
-        <text x={cathodeBarX} y={H - 18} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="11" fill={cell.cathodeColor}>
-          {cell.cathodeMetal} (cathode)
-        </text>
-
-        {/* Salt bridge (U-tube) */}
-        <SaltBridge leftX={sbLeftX} rightX={sbRightX} topY={sbY} innerY={sbInnerY} bottomY={beakerTop + 80} />
-        <text x={(sbLeftX + sbRightX) / 2} y={sbY - 6} textAnchor="middle" fontFamily="JetBrains Mono"
-              fontSize="10" fill="rgba(245,241,232,0.6)">salt bridge · KNO₃</text>
-
-        {/* Salt-bridge ions: K⁺ flows toward cathode (right), NO₃⁻ toward anode (left) */}
-        {[0, 0.33, 0.66].map((o) => {
-          const kk = (k + o) % 1;
-          const xK = sbLeftX + 30 + kk * (sbRightX - sbLeftX - 60);
-          const xN = sbRightX - 30 - kk * (sbRightX - sbLeftX - 60);
-          return (
-            <g key={o}>
-              <text x={xK} y={sbY + 22} fontFamily="JetBrains Mono" fontSize="11" fill="#fbbf24" textAnchor="middle">K⁺</text>
-              <text x={xN} y={sbY + 38} fontFamily="JetBrains Mono" fontSize="10" fill="#9af1c0" textAnchor="middle">NO₃⁻</text>
-            </g>
-          );
-        })}
-
-        {/* Electrons in wire */}
-        {Array.from({ length: nE }, (_, i) => {
-          const off = i / nE;
-          const kk = (k2 + off) % 1;
-          const p = pointOnPath(segments, kk);
-          return (
-            <g key={i}>
-              <circle cx={p.x} cy={p.y} r="5" fill="#69e36b"
-                      style={{ filter: 'drop-shadow(0 0 4px rgba(105,227,107,0.7))' }} />
-              <text x={p.x} y={p.y + 2} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="7" fontWeight="700" fill="#0a0908">e⁻</text>
-            </g>
-          );
-        })}
-
-        {/* Anode dissolution: a metal atom on the bar surface lifts off as M^z+ */}
-        {(() => {
-          const phase = k; // 0..1
-          // Atom sits on bar 0..0.5 then floats off into solution 0.5..1
-          if (phase < 0.5) {
+          {/* Salt-bridge ions: K⁺ flows toward cathode (right), NO₃⁻ toward anode (left) */}
+          {[0, 0.33, 0.66].map((o) => {
+            const kk = (k + o) % 1;
+            const xK = sbLeftX + 30 + kk * (sbRightX - sbLeftX - 60);
+            const xN = sbRightX - 30 - kk * (sbRightX - sbLeftX - 60);
             return (
-              <g>
-                <circle cx={anodeBarX + barW / 2 + 3} cy={beakerTop + 60} r="11" fill={lighten(cell.anodeColor)} stroke="rgba(0,0,0,0.4)" />
-                <text x={anodeBarX + barW / 2 + 3} y={beakerTop + 64} textAnchor="middle" fontFamily="Fraunces" fontSize="10" fontWeight="600" fill="#0a0908">{cell.anodeMetal}</text>
+              <g key={o}>
+                <text x={xK} y={sbY + 22} fontFamily="JetBrains Mono" fontSize="11" fill="#fbbf24" textAnchor="middle">K⁺</text>
+                <text x={xN} y={sbY + 38} fontFamily="JetBrains Mono" fontSize="10" fill="#9af1c0" textAnchor="middle">NO₃⁻</text>
               </g>
             );
-          } else {
-            const t = (phase - 0.5) / 0.5;
-            const x = anodeBarX + barW / 2 + 3 + t * 50;
-            const y = beakerTop + 60 + t * 100;
-            return (
-              <g>
-                <circle cx={x} cy={y} r="11" fill={cell.anodeColor} stroke="rgba(0,0,0,0.4)" opacity={1 - t * 0.4} />
-                <text x={x} y={y + 3} textAnchor="middle" fontFamily="Fraunces" fontSize="9" fontWeight="600" fill="#0a0908">{cell.anodeIon}</text>
-              </g>
-            );
-          }
-        })()}
+          })}
 
-        {/* Cathode deposition: a cation drifts to the bar then turns into solid M */}
-        {(() => {
-          const phase = k;
-          if (phase < 0.6) {
-            const t = phase / 0.6;
-            const x = cathodeBarX + 80 - t * 65;
-            const y = beakerTop + 160 - t * 100;
+          {/* Electrons in wire */}
+          {Array.from({ length: nE }, (_, i) => {
+            const off = i / nE;
+            const kk = (k2 + off) % 1;
+            const p = pointOnPath(segments, kk);
             return (
-              <g>
-                <circle cx={x} cy={y} r="11" fill={cell.cathodeColor} stroke="rgba(0,0,0,0.4)" />
-                <text x={x} y={y + 3} textAnchor="middle" fontFamily="Fraunces" fontSize="9" fontWeight="600" fill="#0a0908">{cell.cathodeIon}</text>
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r="5" fill="#69e36b"
+                        style={{ filter: 'drop-shadow(0 0 4px rgba(105,227,107,0.7))' }} />
+                <text x={p.x} y={p.y + 2} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="7" fontWeight="700" fill="#0a0908">e⁻</text>
               </g>
             );
-          } else {
-            return (
-              <g>
-                <circle cx={cathodeBarX - barW / 2 - 3} cy={beakerTop + 60} r="11" fill={lighten(cell.cathodeColor)} stroke="rgba(0,0,0,0.4)" />
-                <text x={cathodeBarX - barW / 2 - 3} y={beakerTop + 64} textAnchor="middle" fontFamily="Fraunces" fontSize="10" fontWeight="600" fill="#0a0908">{cell.cathodeMetal}</text>
-                <text x={cathodeBarX - barW / 2 - 3} y={beakerTop + 86} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="7" fill={cell.cathodeColor} letterSpacing="0.14em">PLATED</text>
-              </g>
-            );
-          }
-        })()}
+          })}
+        </>)}
 
-        {/* Floating ions in each beaker (concentration cue) */}
-        {floatingIons(cell.anodeIon, cell.anodeColor, anodeBeakerX + 12, anodeBeakerX + beakerW - 12, beakerTop + 110, beakerTop + beakerH - 20, cAnode, k)}
-        {floatingIons(cell.cathodeIon, cell.cathodeColor, cathodeBeakerX + 12, cathodeBeakerX + beakerW - 12, beakerTop + 110, beakerTop + beakerH - 20, cCathode, k + 0.5)}
+        {/* ── Anode half-cell (shown in 'full' and 'anode' views) ── */}
+        {(viewMode === 'full' || viewMode === 'anode') && (
+          <g transform={viewMode === 'anode' ? `translate(${anodeOffsetX},0)` : undefined}>
+            <Beaker x={anodeBeakerX} y={beakerTop} w={beakerW} h={beakerH} fillUrl="url(#g-an)" />
+            <rect x={anodeBarX - barW / 2} y={beakerTop - 20} width={barW} height={beakerH - 40} fill={cell.anodeColor} />
+            {/* Polarity label */}
+            <text x={anodeBarX} y={beakerTop - 28} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="14" fontWeight="600" fill={cell.anodeColor}>−</text>
+            {/* Electrode label */}
+            <text x={anodeBarX} y={H - 18} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="11" fill={cell.anodeColor}>
+              {cell.anodeMetal} (anode)
+            </text>
+
+            {/* Anode dissolution: metal atom lifts off bar → floats into solution as ion */}
+            {(() => {
+              const phase = k;
+              if (phase < 0.5) {
+                return (
+                  <g>
+                    <circle cx={anodeBarX + barW / 2 + 3} cy={beakerTop + 60} r="11" fill={lighten(cell.anodeColor)} stroke="rgba(0,0,0,0.4)" />
+                    <text x={anodeBarX + barW / 2 + 3} y={beakerTop + 64} textAnchor="middle" fontFamily="Fraunces" fontSize="10" fontWeight="600" fill="#0a0908">{cell.anodeMetal}</text>
+                  </g>
+                );
+              } else {
+                const t = (phase - 0.5) / 0.5;
+                const x = anodeBarX + barW / 2 + 3 + t * 50;
+                const y = beakerTop + 60 + t * 100;
+                return (
+                  <g>
+                    <circle cx={x} cy={y} r="11" fill={cell.anodeColor} stroke="rgba(0,0,0,0.4)" opacity={1 - t * 0.4} />
+                    <text x={x} y={y + 3} textAnchor="middle" fontFamily="Fraunces" fontSize="9" fontWeight="600" fill="#0a0908">{cell.anodeIon}</text>
+                  </g>
+                );
+              }
+            })()}
+
+            {/* Floating ions in anode beaker */}
+            {floatingIons(cell.anodeIon, cell.anodeColor, anodeBeakerX + 12, anodeBeakerX + beakerW - 12, beakerTop + 110, beakerTop + beakerH - 20, cAnode, k)}
+          </g>
+        )}
+
+        {/* ── Cathode half-cell (shown in 'full' and 'cathode' views) ── */}
+        {(viewMode === 'full' || viewMode === 'cathode') && (
+          <g transform={viewMode === 'cathode' ? `translate(${cathodeOffsetX},0)` : undefined}>
+            <Beaker x={cathodeBeakerX} y={beakerTop} w={beakerW} h={beakerH} fillUrl="url(#g-ca)" />
+            <rect x={cathodeBarX - barW / 2} y={beakerTop - 20} width={barW} height={beakerH - 40} fill={cell.cathodeColor} />
+            {/* Polarity label */}
+            <text x={cathodeBarX} y={beakerTop - 28} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="14" fontWeight="600" fill={cell.cathodeColor}>+</text>
+            {/* Electrode label */}
+            <text x={cathodeBarX} y={H - 18} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="11" fill={cell.cathodeColor}>
+              {cell.cathodeMetal} (cathode)
+            </text>
+
+            {/* Cathode deposition: cation drifts to the bar then plates as solid M */}
+            {(() => {
+              const phase = k;
+              if (phase < 0.6) {
+                const t = phase / 0.6;
+                const x = cathodeBarX + 80 - t * 65;
+                const y = beakerTop + 160 - t * 100;
+                return (
+                  <g>
+                    <circle cx={x} cy={y} r="11" fill={cell.cathodeColor} stroke="rgba(0,0,0,0.4)" />
+                    <text x={x} y={y + 3} textAnchor="middle" fontFamily="Fraunces" fontSize="9" fontWeight="600" fill="#0a0908">{cell.cathodeIon}</text>
+                  </g>
+                );
+              } else {
+                return (
+                  <g>
+                    <circle cx={cathodeBarX - barW / 2 - 3} cy={beakerTop + 60} r="11" fill={lighten(cell.cathodeColor)} stroke="rgba(0,0,0,0.4)" />
+                    <text x={cathodeBarX - barW / 2 - 3} y={beakerTop + 64} textAnchor="middle" fontFamily="Fraunces" fontSize="10" fontWeight="600" fill="#0a0908">{cell.cathodeMetal}</text>
+                    <text x={cathodeBarX - barW / 2 - 3} y={beakerTop + 86} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="7" fill={cell.cathodeColor} letterSpacing="0.14em">PLATED</text>
+                  </g>
+                );
+              }
+            })()}
+
+            {/* Floating ions in cathode beaker */}
+            {floatingIons(cell.cathodeIon, cell.cathodeColor, cathodeBeakerX + 12, cathodeBeakerX + beakerW - 12, beakerTop + 110, beakerTop + beakerH - 20, cCathode, k + 0.5)}
+          </g>
+        )}
+
+        {/* ── Focused-view overlays: half-reaction + E° in the empty wire area ── */}
+        {viewMode === 'anode' && (
+          <g>
+            <rect x={110} y={50} width={380} height={50} rx="5"
+                  fill="var(--ink-2)" stroke={cell.anodeColor} strokeOpacity="0.4" strokeWidth="1" />
+            <text x={W / 2} y={70} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="10"
+                  fill={cell.anodeColor} letterSpacing="0.12em">
+              OXIDATION · E°(red) = {signed(-cell.EoxAnode)} V
+            </text>
+            <text x={W / 2} y={90} textAnchor="middle" fontFamily="Fraunces" fontSize="13" fontStyle="italic"
+                  fill="rgba(245,241,232,0.9)">
+              {anodeRxnText}
+            </text>
+          </g>
+        )}
+        {viewMode === 'cathode' && (
+          <g>
+            <rect x={110} y={50} width={380} height={50} rx="5"
+                  fill="var(--ink-2)" stroke={cell.cathodeColor} strokeOpacity="0.4" strokeWidth="1" />
+            <text x={W / 2} y={70} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="10"
+                  fill={cell.cathodeColor} letterSpacing="0.12em">
+              REDUCTION · E°(red) = {signed(cell.EredCathode)} V
+            </text>
+            <text x={W / 2} y={90} textAnchor="middle" fontFamily="Fraunces" fontSize="13" fontStyle="italic"
+                  fill="rgba(245,241,232,0.9)">
+              {cathodeRxnText}
+            </text>
+          </g>
+        )}
       </svg>
     </>
   );

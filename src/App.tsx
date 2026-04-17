@@ -5,6 +5,7 @@ import UnitPage from './pages/UnitPage';
 import PeriodicTablePage from './pages/PeriodicTablePage';
 import Nav from './components/Nav';
 import Footer from './components/Footer';
+import Feedback from './components/Feedback';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         </Routes>
       </main>
       <Footer />
+      <Feedback />
     </BrowserRouter>
   );
 }

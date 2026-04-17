@@ -662,6 +662,8 @@ function Scene({
 
       {items.map((it, idx) => {
         if (it.kind === 'bond') {
+          // No bond lines in balloon mode — the balloons themselves are the domains
+          if (balloonMode) return null;
           return (
             <line key={idx}
                   x1={it.ax} y1={it.ay} x2={it.bx} y2={it.by}
@@ -672,20 +674,35 @@ function Scene({
         if (it.kind === 'atom') {
           const e = ELEM[it.sym] ?? { color: '#888', ring: '#444', text: '#000' };
           if (balloonMode) {
-            // Balloon model: large translucent domain sphere, no atom label
-            const br = (it.central ? 46 : 52) * (it.r / (it.central ? centralR : (ATOM_R[it.sym] ?? 20)));
+            // Central atom is hidden — balloons all meet at the same tie point
+            if (it.central) return null;
+            // Balloon = elongated ellipse whose major axis follows the bond,
+            // narrow end at the tie point (central atom), fat end at the atom position.
+            const dx = it.px - cx;
+            const dy = it.py - cy;
+            const len = Math.hypot(dx, dy) || 1;
+            const angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
+            // Ellipse center sits just past the bond midpoint so the bulb is
+            // at the atom end, with the narrow end tucked at the tie point.
+            const cex = cx + dx * 0.55;
+            const cey = cy + dy * 0.55;
+            const rx = len * 0.62;
+            const ry = 28;
+            const fillCol = '#86d18a';      // bond domain: pastel green
+            const strokeCol = '#4a9950';
+            // Specular highlight offset perpendicular-ish to the bond
+            const hlAng = (angleDeg - 25) * Math.PI / 180;
+            const hlX = cex + Math.cos(hlAng) * rx * 0.35;
+            const hlY = cey + Math.sin(hlAng) * rx * 0.35;
             return (
               <g key={idx}>
-                <circle cx={it.px} cy={it.py} r={br}
-                        fill={e.color} fillOpacity={it.central ? 0.55 : 0.45}
-                        stroke={e.ring} strokeWidth="1" strokeOpacity="0.6" />
-                {it.central && (
-                  <text x={it.px} y={it.py + 5} textAnchor="middle"
-                        fontFamily="Fraunces, serif" fontWeight="700"
-                        fontSize={14} fill={e.text} fillOpacity={0.9}>
-                    {it.sym}
-                  </text>
-                )}
+                <ellipse cx={cex} cy={cey} rx={rx} ry={ry}
+                         transform={`rotate(${angleDeg} ${cex} ${cey})`}
+                         fill={fillCol} fillOpacity={0.82}
+                         stroke={strokeCol} strokeWidth="1.25" strokeOpacity="0.7" />
+                <ellipse cx={hlX} cy={hlY} rx={rx * 0.22} ry={ry * 0.32}
+                         transform={`rotate(${angleDeg} ${cex} ${cey})`}
+                         fill="#ffffff" fillOpacity={0.35} />
               </g>
             );
           }
@@ -706,14 +723,27 @@ function Scene({
         }
         if (it.kind === 'lone') {
           if (balloonMode) {
-            // Balloon model: lone pair domain is slightly larger balloon, distinct purple
+            // Lone-pair balloon: same elongated shape, distinct warm red to mark it
+            const dx = it.px - cx;
+            const dy = it.py - cy;
+            const len = Math.hypot(dx, dy) || 1;
+            const angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
+            const cex = cx + dx * 0.55;
+            const cey = cy + dy * 0.55;
+            const rx = len * 0.62;
+            const ry = 28;
+            const hlAng = (angleDeg - 25) * Math.PI / 180;
+            const hlX = cex + Math.cos(hlAng) * rx * 0.35;
+            const hlY = cey + Math.sin(hlAng) * rx * 0.35;
             return (
               <g key={idx}>
-                <circle cx={it.px} cy={it.py} r={58 * (it.r / (16))}
-                        fill="#a78bfa" fillOpacity={0.35}
-                        stroke="#7c5fd6" strokeWidth="1" strokeOpacity="0.5" />
-                <circle cx={it.px - it.r * 0.3} cy={it.py} r={it.r * 0.18} fill="#e0d2ff" opacity={0.7} />
-                <circle cx={it.px + it.r * 0.3} cy={it.py} r={it.r * 0.18} fill="#e0d2ff" opacity={0.7} />
+                <ellipse cx={cex} cy={cey} rx={rx} ry={ry}
+                         transform={`rotate(${angleDeg} ${cex} ${cey})`}
+                         fill="#e06b6b" fillOpacity={0.82}
+                         stroke="#9c3838" strokeWidth="1.25" strokeOpacity="0.7" />
+                <ellipse cx={hlX} cy={hlY} rx={rx * 0.22} ry={ry * 0.32}
+                         transform={`rotate(${angleDeg} ${cex} ${cey})`}
+                         fill="#ffffff" fillOpacity={0.3} />
               </g>
             );
           }
@@ -726,6 +756,8 @@ function Scene({
           );
         }
         if (it.kind === 'angle') {
+          // Angle labels overlap balloons heavily; the balloon geometry is the visualization
+          if (balloonMode) return null;
           const pad = 4;
           const text = it.label;
           const w = text.length * 6 + pad * 2;
