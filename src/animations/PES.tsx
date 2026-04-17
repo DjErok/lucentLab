@@ -501,6 +501,16 @@ export default function PES() {
 
 // ───── ejection scene ─────
 
+function nMaxForZ(z: number): number {
+  if (z <= 2) return 1;
+  if (z <= 10) return 2;
+  if (z <= 18) return 3;
+  if (z <= 36) return 4;
+  if (z <= 54) return 5;
+  if (z <= 86) return 6;
+  return 7;
+}
+
 function EjectionScene({
   element, shell, t, photonE, active,
 }: {
@@ -514,31 +524,53 @@ function EjectionScene({
   const cx = W / 2, cy = H / 2;
   const photonStart = { x: 16, y: cy };
   const photonEnd = { x: cx, y: cy };
+
+  // Physics gate — no electron leaves if photon is below threshold.
+  const ke = shell ? photonE - shell.be : 0;
+  const ionizable = shell ? ke >= 0 : false;
+
   // Phase 1: photon flies in (t: 0..0.4). Phase 2: electron flies out (0.4..1).
   const photonT = Math.min(1, t / 0.4);
   const electronT = Math.max(0, Math.min(1, (t - 0.4) / 0.6));
   const photonX = photonStart.x + (photonEnd.x - photonStart.x) * photonT;
-  // KE determines exit speed (visualized as travel distance in same time).
-  const ke = shell ? Math.max(0, photonE - shell.be) : 0;
-  const exitDist = Math.min(180, 30 + ke * 4);
-  const eX = cx + exitDist * electronT;
-  const eY = cy - 30 * electronT;
+
+  // Shells actually drawn for this element.
+  const nMax = nMaxForZ(element.z);
+  const shellRadius = (n: number) => 12 + n * Math.min(16, 70 / nMax);
+
+  // Exit speed scales with KE (clamped). Electron starts at its shell radius,
+  // not from the nucleus, and flies away along the same angle.
+  const angle = -0.35; // slight upward — so it doesn't overlap the equation
+  const r0 = shell ? shellRadius(shell.n) : 0;
+  const sx0 = cx + r0 * Math.cos(angle);
+  const sy0 = cy + r0 * Math.sin(angle);
+  const exitDist = Math.min(160, 10 + Math.max(0, ke) * 5);
+  const eX = sx0 + Math.cos(angle) * exitDist * electronT;
+  const eY = sy0 + Math.sin(angle) * exitDist * electronT;
 
   const shellColor = shell ? SHELL_COLOR[shell.n] : 'var(--paper-dim)';
-  const arrived = active && t > 0.4;
+  const electronArrived = active && t > 0.4 && ionizable;
+  const photonAbsorbed = active && t > 0.4 && !ionizable;
 
   return (
     <div style={{ marginTop: 10 }}>
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
-        {/* Atom — concentric shells */}
-        {[1, 2, 3].map(r => (
-          <circle key={r} cx={cx} cy={cy}
-                  r={14 + r * 12}
-                  fill="none" stroke="rgba(245,241,232,0.12)" strokeWidth="1" />
-        ))}
-        <circle cx={cx} cy={cy} r={16} fill="#ff8d54" />
-        <text x={cx} y={cy + 4} textAnchor="middle"
-              fontFamily="Fraunces" fontSize="13" fontWeight="600" fill="#0a0908">
+        {/* Atom — concentric shells matching this element's shell count */}
+        {Array.from({ length: nMax }, (_, i) => i + 1).map(n => {
+          const isActive = shell?.n === n;
+          return (
+            <circle key={n} cx={cx} cy={cy}
+                    r={shellRadius(n)}
+                    fill="none"
+                    stroke={isActive ? shellColor : 'rgba(245,241,232,0.12)'}
+                    strokeWidth={isActive ? '1.2' : '1'}
+                    strokeDasharray={isActive ? '3 2' : undefined}
+                    opacity={isActive ? 0.75 : 1} />
+          );
+        })}
+        <circle cx={cx} cy={cy} r={11} fill="#ff8d54" />
+        <text x={cx} y={cy + 3.5} textAnchor="middle"
+              fontFamily="Fraunces" fontSize="11" fontWeight="600" fill="#0a0908">
           {element.sym}
         </text>
 
@@ -552,15 +584,28 @@ function EjectionScene({
           </g>
         )}
 
-        {/* Ejected electron */}
-        {arrived && shell && (
+        {/* Ejected electron — only when hν ≥ BE */}
+        {electronArrived && shell && (
           <g>
-            <line x1={cx} y1={cy} x2={eX} y2={eY}
+            <line x1={sx0} y1={sy0} x2={eX} y2={eY}
                   stroke={shellColor} strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
             <circle cx={eX} cy={eY} r="5"
                     fill={shellColor} stroke="var(--paper)" strokeWidth="1" />
             <text x={eX + 8} y={eY + 3}
                   fontFamily="JetBrains Mono" fontSize="10" fill={shellColor}>e⁻</text>
+          </g>
+        )}
+
+        {/* Absorbed-only indication — photon below threshold, no ejection */}
+        {photonAbsorbed && shell && (
+          <g>
+            <circle cx={cx} cy={cy} r={shellRadius(shell.n) + 3}
+                    fill="none" stroke="var(--hot)" strokeWidth="0.8"
+                    strokeDasharray="2 2" opacity={0.8 - Math.max(0, t - 0.4)} />
+            <text x={cx} y={cy - shellRadius(shell.n) - 8} textAnchor="middle"
+                  fontFamily="JetBrains Mono" fontSize="9" fill="var(--hot)">
+              hν &lt; BE · no ejection
+            </text>
           </g>
         )}
 
@@ -573,8 +618,8 @@ function EjectionScene({
             </text>
             <text x={W - 8} y={H - 8} textAnchor="end"
                   fontFamily="JetBrains Mono" fontSize="10"
-                  fill={photonE >= shell.be ? 'var(--phos)' : 'var(--hot)'}>
-              {photonE.toFixed(0)} − {shell.be.toFixed(2)} = {(photonE - shell.be).toFixed(2)} MJ/mol
+                  fill={ionizable ? 'var(--phos)' : 'var(--hot)'}>
+              {photonE.toFixed(0)} − {shell.be.toFixed(2)} = {ke.toFixed(2)} MJ/mol
             </text>
           </g>
         )}

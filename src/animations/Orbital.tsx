@@ -507,6 +507,7 @@ function OrbitalShapes({ tab, setTab, accent, autoRotate }: {
         background: 'var(--ink-2)', borderRadius: 4,
         aspectRatio: '2.4 / 1', position: 'relative', overflow: 'hidden',
         cursor: dragRef.current ? 'grabbing' : 'grab', touchAction: 'none',
+        userSelect: 'none', WebkitUserSelect: 'none',
       }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
