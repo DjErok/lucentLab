@@ -232,6 +232,41 @@ export default function UnitPage() {
         <UnitTest questions={studyGuide.unitTest} accent={unit.hue} unitTitle={unit.title} />
       )}
 
+      {/* Edit-on-GitHub prompt — only in study mode, where content fixes are easiest */}
+      {showStudy && studyGuide && (
+        <section style={{ borderTop: '1px solid var(--line)', padding: '32px 0' }}>
+          <div className="shell" style={{ display: 'flex', justifyContent: 'center' }}>
+            <a
+              href={`https://github.com/DjErok/lucentLab/edit/main/src/data/study/unit${String(unit.number).padStart(2, '0')}.ts`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mono"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                padding: '10px 18px',
+                fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
+                color: 'var(--paper-dim)',
+                border: '1px dashed var(--line-strong)',
+                borderRadius: 999,
+                textDecoration: 'none',
+                transition: 'color 140ms, border-color 140ms',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.color = 'var(--paper)';
+                (e.currentTarget as HTMLElement).style.borderColor = unit.hue;
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.color = 'var(--paper-dim)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--line-strong)';
+              }}
+            >
+              <span aria-hidden>✎</span>
+              Spot a typo? Edit this unit on GitHub
+            </a>
+          </div>
+        </section>
+      )}
+
       {/* PREV / NEXT */}
       <section style={{ borderTop: '1px solid var(--line)', padding: '40px 0' }}>
         <div className="shell unit-prevnext" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>

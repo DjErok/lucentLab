@@ -1,6 +1,13 @@
 # Lucent Lab
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Good first issues](https://img.shields.io/github/issues/DjErok/lucentLab/good%20first%20issue?color=7057ff&label=good%20first%20issues)](https://github.com/DjErok/lucentLab/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
+
 An interactive AP Chemistry visual atlas — PhET-quality animations *and* a full study-mode companion for every Unit 1–9 topic, built with React 19 + TypeScript + Vite.
+
+> 🧪 **Want to contribute?** Typo fixes, new animations, UI polish — all welcome.
+> New to open source? Read the beginner-friendly **[CONTRIBUTING.md](CONTRIBUTING.md)** — it walks you through every step from fork to pull request.
 
 Two modes per unit page:
 

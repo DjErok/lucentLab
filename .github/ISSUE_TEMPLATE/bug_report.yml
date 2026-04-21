@@ -1,0 +1,58 @@
+name: 🐛 Bug report
+description: Something on the site is broken, looks wrong, or doesn't work as expected.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! A screenshot helps a lot — paste or drag one into the description field.
+
+  - type: input
+    id: page
+    attributes:
+      label: Which page?
+      description: Copy-paste the URL, or describe the route (e.g. `/unit/vsepr`).
+      placeholder: "https://lucent-lab.vercel.app/unit/vsepr"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+      description: What did you see go wrong? What did you expect instead?
+      placeholder: |
+        I clicked the "Anode half-cell" tab in the Galvanic animation and the beaker disappeared entirely.
+        I expected to see just the left beaker centered.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: If you can, list the clicks/keystrokes that trigger the bug.
+      placeholder: |
+        1. Open /unit/applications-thermo
+        2. Scroll to the Galvanic animation
+        3. Click the "Anode half-cell" tab
+    validations:
+      required: false
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & OS
+      description: e.g. "Chrome 131 on Windows 11", "Safari 18 on iOS 18"
+      placeholder: "Chrome 131 on macOS 15"
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot (optional but very helpful)
+      description: Drag an image here, or paste one from your clipboard.
+    validations:
+      required: false

@@ -1,0 +1,61 @@
+name: 📚 Study-guide content fix
+description: A typo, wrong number, wrong formula, or factual error in study-mode text.
+title: "[Content]: "
+labels: ["content", "good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Content fixes are the easiest contributions to merge — thank you! If you're comfortable,
+        feel free to open a pull request directly instead of an issue. Almost all content lives in
+        `src/data/study/unitXX.ts`.
+
+  - type: dropdown
+    id: unit
+    attributes:
+      label: Which unit?
+      options:
+        - "Unit 1 — Atomic Structure"
+        - "Unit 2 — Compounds & Bonding"
+        - "Unit 3 — Intermolecular Forces"
+        - "Unit 4 — Chemical Reactions"
+        - "Unit 5 — Kinetics"
+        - "Unit 6 — Thermodynamics"
+        - "Unit 7 — Equilibrium"
+        - "Unit 8 — Acids & Bases"
+        - "Unit 9 — Applications of Thermo"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: input
+    id: topic
+    attributes:
+      label: Topic or section
+      description: e.g. "7.2 ICE tables", "Lewis structure of NH₃"
+    validations:
+      required: false
+
+  - type: textarea
+    id: current
+    attributes:
+      label: What's wrong now?
+      description: Quote the current wording or describe the error.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested
+    attributes:
+      label: What should it say instead?
+      description: Your suggested fix. Be as specific as possible.
+    validations:
+      required: false
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Source (optional)
+      description: A textbook chapter, CED section, or link that supports the correction.
+    validations:
+      required: false

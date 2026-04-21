@@ -15,7 +15,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 40 }}>
+        <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap' }}>
           <div>
             <div className="eyebrow" style={{ marginBottom: 10 }}>Curriculum</div>
             <div className="mono" style={{ fontSize: 11, color: 'var(--paper-dim)', lineHeight: 2 }}>
@@ -30,6 +30,27 @@ export default function Footer() {
               <div>College Board CED</div>
               <div>OpenStax Chemistry</div>
               <div>NIST WebBook</div>
+            </div>
+          </div>
+          <div>
+            <div className="eyebrow" style={{ marginBottom: 10 }}>Open source</div>
+            <div className="mono" style={{ fontSize: 11, lineHeight: 2 }}>
+              <a href="https://github.com/DjErok/lucentLab" target="_blank" rel="noopener noreferrer"
+                 style={{ color: 'var(--paper-dim)', textDecoration: 'none', borderBottom: '1px dotted var(--line-strong)' }}>
+                View on GitHub →
+              </a>
+              <div>
+                <a href="https://github.com/DjErok/lucentLab/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer"
+                   style={{ color: 'var(--paper-dim)', textDecoration: 'none', borderBottom: '1px dotted var(--line-strong)' }}>
+                  How to contribute
+                </a>
+              </div>
+              <div>
+                <a href="https://github.com/DjErok/lucentLab/issues/new" target="_blank" rel="noopener noreferrer"
+                   style={{ color: 'var(--paper-dim)', textDecoration: 'none', borderBottom: '1px dotted var(--line-strong)' }}>
+                  Open an issue
+                </a>
+              </div>
             </div>
           </div>
         </div>

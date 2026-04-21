@@ -1,0 +1,50 @@
+name: ✨ Feature request / new animation
+description: Suggest a new feature, animation, or improvement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Got an idea? Great. The more specific, the more likely it gets built.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: What kind of thing is this?
+      options:
+        - New interactive animation
+        - New study-guide topic
+        - UI improvement (layout, colors, accessibility)
+        - Performance / code quality
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What should be added or changed, and why would it help students?
+      placeholder: |
+        Add an animation for buffer capacity — drag a slider to add acid/base and watch pH drift.
+        The current Titration animation doesn't show the plateau in the buffer region clearly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: sketch
+    attributes:
+      label: Rough sketch or reference (optional)
+      description: A screenshot, doodle, link to a similar thing, or rough interaction description.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: willing
+    attributes:
+      label: Are you interested in building this yourself?
+      options:
+        - label: Yes — I'd like to open a PR for this (I'll wait for a 👍 first).
+        - label: Maybe, if someone can help me get started.
+        - label: No, I'm just suggesting it.
