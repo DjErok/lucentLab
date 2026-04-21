@@ -450,7 +450,7 @@ function SpectatorIon({ x, y, label, color, phase, idx }: { x: number; y: number
   );
 }
 
-function AcidMolecule({ x, y, combo, phase, transfer }: { x: number; y: number; combo: Combo; phase: number; transfer: number | null }) {
+function AcidMolecule({ x, y, combo, transfer }: { x: number; y: number; combo: Combo; phase: number; transfer: number | null }) {
   // transfer: 0..1 one-way progress for matched acid-base pairs.
   // null means no matched acceptor (remains unreacted donor).
   const departed = transfer != null ? transfer >= 0.2 : false;
@@ -492,7 +492,7 @@ function AcidMolecule({ x, y, combo, phase, transfer }: { x: number; y: number; 
   );
 }
 
-function BaseMolecule({ x, y, combo, phase, transfer }: { x: number; y: number; combo: Combo; phase: number; transfer: number | null }) {
+function BaseMolecule({ x, y, combo, transfer }: { x: number; y: number; combo: Combo; phase: number; transfer: number | null }) {
   // For matched pairs, acceptor becomes bound once proton arrives and stays bound.
   const bound = transfer != null ? transfer >= 0.75 : false;
   const isAmmonia = combo.base.formula === 'NH3';
