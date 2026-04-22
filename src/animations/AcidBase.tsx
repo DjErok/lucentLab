@@ -386,7 +386,7 @@ function BeakerScene({ combo, nAcid, nBase, phase, drift, solutionTint }: {
       <text x="90" y="16" textAnchor="end" fontFamily="JetBrains Mono" fontSize="2.4" fill="var(--base)" letterSpacing="0.4">BASE · {combo.base.formula}</text>
 
       {/* Spectators floating on top band */}
-      {Array.from({ length: Math.min(nAcid, 6) }).map((_, i) => (combo.id !== 'sa-sb' && combo.spectatorAnion) && (
+      {Array.from({ length: Math.min(nAcid, 6) }).map((_, i) => combo.spectatorAnion && (
         <SpectatorIon key={`sa-${i}`} x={14 + (i * 12) % 70} y={26 + ((i * 7) % 6)}
                       label={combo.spectatorAnion} color={COL_CL} phase={drift} idx={i} />
       ))}
@@ -455,6 +455,9 @@ function AcidMolecule({ x, y, combo, transfer }: { x: number; y: number; combo: 
   // null means no matched acceptor (remains unreacted donor).
   const departed = transfer != null ? transfer >= 0.2 : false;
   const isAcetic = combo.acid.formula === 'CH3COOH';
+  const speciesLabel = isAcetic
+    ? (departed ? 'CH₃COO⁻' : 'CH₃COOH')
+    : (departed ? 'Cl⁻' : 'HCl');
 
   return (
     <g transform={`translate(${x} ${y})`}>
@@ -488,6 +491,9 @@ function AcidMolecule({ x, y, combo, transfer }: { x: number; y: number; combo: 
       {departed && isAcetic && (
         <text x={isAcetic ? 4 : 3.2} y={-2.6} fontFamily="JetBrains Mono" fontSize="1.4" fill={isAcetic ? 'var(--acid)' : COL_CL}>−</text>
       )}
+      <text y={5.2} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="1.05" fill="var(--paper-faint)">
+        {speciesLabel}
+      </text>
     </g>
   );
 }
@@ -496,6 +502,9 @@ function BaseMolecule({ x, y, combo, transfer }: { x: number; y: number; combo: 
   // For matched pairs, acceptor becomes bound once proton arrives and stays bound.
   const bound = transfer != null ? transfer >= 0.75 : false;
   const isAmmonia = combo.base.formula === 'NH3';
+  const speciesLabel = isAmmonia
+    ? (bound ? 'NH₄⁺' : 'NH₃')
+    : (bound ? 'H₂O' : 'OH⁻');
 
   return (
     <g transform={`translate(${x} ${y})`}>
@@ -515,6 +524,7 @@ function BaseMolecule({ x, y, combo, transfer }: { x: number; y: number; combo: 
           <text y={0.6} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="1.4" fontWeight="700" fill="#0a0908">O</text>
           <circle cx={2.6} cy={1.4} r={1} fill={COL_H} />
           <text x={2.6} y={1.9} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="1.0" fontWeight="700" fill="#0a0908">H</text>
+          {!bound && <text x={-2.8} y={-1.8} fontFamily="JetBrains Mono" fontSize="1.4" fill="var(--base)">−</text>}
         </g>
       )}
       {bound && (
@@ -532,6 +542,9 @@ function BaseMolecule({ x, y, combo, transfer }: { x: number; y: number; combo: 
           </g>
         )
       )}
+      <text y={5.2} textAnchor="middle" fontFamily="JetBrains Mono" fontSize="1.05" fill="var(--paper-faint)">
+        {speciesLabel}
+      </text>
     </g>
   );
 }
