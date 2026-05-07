@@ -41,7 +41,15 @@ export type AnimationKey =
   | 'buffer'
   | 'entropy'
   | 'gibbs'
-  | 'galvanic';
+  | 'galvanic'
+  // Molecular Workbench imports — AP curriculum gaps
+  | 'maxwell-boltzmann'
+  | 'orbital-shapes'
+  | 'bond-formation'
+  | 'crystal-lattice'
+  | 'dissolution'
+  | 'vapor-pressure'
+  | 'solubility-ksp';
 
 export const UNITS: Unit[] = [
   {
@@ -54,11 +62,11 @@ export const UNITS: Unit[] = [
     topics: [
       { id: '1.1', title: 'Moles & Molar Mass', blurb: 'Avogadro\'s constant and conversion between mass, moles and particles.' },
       { id: '1.2', title: 'Mass Spectroscopy', blurb: 'Determining isotopic abundance from mass spectra.' },
-      { id: '1.3', title: 'Atomic Structure', blurb: 'The nucleus, electron clouds and isotopes.' },
+      { id: '1.3', title: 'Atomic Structure', blurb: 'The nucleus, electron clouds and isotopes.', animationKey: 'orbital-shapes' },
       { id: '1.4', title: 'Electron Configuration', blurb: 'Filling orbitals with the Aufbau, Pauli and Hund principles.', animationKey: 'orbital' },
       { id: '1.5', title: 'Photoelectron Spectroscopy', blurb: 'Probing electron energies with high-energy photons.', animationKey: 'photoelectron' },
       { id: '1.6', title: 'Periodic Trends', blurb: 'Atomic radius, ionization energy, electronegativity.', animationKey: 'periodic-trend' },
-      { id: '1.7', title: 'Valence Electrons & Ionic Compounds', blurb: 'How outer-shell electrons drive ion formation.' },
+      { id: '1.7', title: 'Valence Electrons & Ionic Compounds', blurb: 'How outer-shell electrons drive ion formation.', animationKey: 'crystal-lattice' },
     ],
   },
   {
@@ -69,10 +77,10 @@ export const UNITS: Unit[] = [
     weight: '7–9%',
     hue: '#a78bfa',
     topics: [
-      { id: '2.1', title: 'Types of Chemical Bonds', blurb: 'Ionic, covalent and metallic bonding behaviors.' },
+      { id: '2.1', title: 'Types of Chemical Bonds', blurb: 'Ionic, covalent and metallic bonding behaviors.', animationKey: 'bond-formation' },
       { id: '2.2', title: 'Intramolecular Force & Potential Energy', blurb: 'Lennard-Jones-like potential wells inside molecules — same shape, different magnitude than IMF.', animationKey: 'imf' },
-      { id: '2.3', title: 'Structure of Ionic Solids', blurb: 'Coulombic attraction in extended lattices.' },
-      { id: '2.4', title: 'Metals & Alloys', blurb: 'Sea-of-electrons, substitutional and interstitial alloys.' },
+      { id: '2.3', title: 'Structure of Ionic Solids', blurb: 'Coulombic attraction in extended lattices.', animationKey: 'crystal-lattice' },
+      { id: '2.4', title: 'Metals & Alloys', blurb: 'Sea-of-electrons, substitutional and interstitial alloys.', animationKey: 'crystal-lattice' },
       { id: '2.5', title: 'Lewis Diagrams', blurb: 'Octet, expanded octet, lone pairs.' },
       { id: '2.6', title: 'Resonance & Formal Charge', blurb: 'Delocalized electrons and structure averaging.', animationKey: 'lewis-resonance' },
       { id: '2.7', title: 'VSEPR & Hybridization', blurb: 'Predicting 3D shape from electron domains.', animationKey: 'vsepr' },
@@ -87,11 +95,11 @@ export const UNITS: Unit[] = [
     hue: '#5dd0ff',
     topics: [
       { id: '3.1', title: 'Intermolecular Forces', blurb: 'LDF, dipole-dipole, hydrogen bonding hierarchies.', animationKey: 'imf' },
-      { id: '3.2', title: 'Properties of Solids', blurb: 'Network covalent, molecular, ionic, metallic.' },
+      { id: '3.2', title: 'Properties of Solids', blurb: 'Network covalent, molecular, ionic, metallic.', animationKey: 'crystal-lattice' },
       { id: '3.3', title: 'Solids, Liquids, Gases', blurb: 'Particle motion across phases.', animationKey: 'phase' },
       { id: '3.4', title: 'Ideal Gas Law', blurb: 'PV = nRT and the kinetic-molecular foundation.', animationKey: 'gas-law' },
-      { id: '3.5', title: 'Kinetic Molecular Theory', blurb: 'Maxwell-Boltzmann distribution of speeds.' },
-      { id: '3.6', title: 'Solutions & Mixtures', blurb: 'Dissolution, solubility, like-dissolves-like.' },
+      { id: '3.5', title: 'Kinetic Molecular Theory', blurb: 'Maxwell-Boltzmann distribution of speeds.', animationKey: 'maxwell-boltzmann' },
+      { id: '3.6', title: 'Solutions & Mixtures', blurb: 'Dissolution, solubility, like-dissolves-like.', animationKey: 'dissolution' },
       { id: '3.7', title: 'Beer-Lambert Law', blurb: 'A = εbc — concentration from absorbance.', animationKey: 'beer-lambert' },
     ],
   },
@@ -139,6 +147,7 @@ export const UNITS: Unit[] = [
       { id: '6.3', title: 'Heat Transfer & Thermal Equilibrium', blurb: 'When two systems reach the same T — heat flows from hot to cold until ΔT = 0.', animationKey: 'calorimetry' },
       { id: '6.4', title: 'Heat Capacity & Calorimetry', blurb: 'q = mcΔT and the bomb calorimeter.', animationKey: 'calorimetry' },
       { id: '6.5', title: 'Phase Change Energy', blurb: 'Latent heat at melting and boiling — heating curve plateaus at ΔH(fus) and ΔH(vap).', animationKey: 'phase' },
+      { id: '6.7', title: 'Vapor Pressure', blurb: 'Liquid–vapor equilibrium and the Clausius–Clapeyron relation.', animationKey: 'vapor-pressure' },
       { id: '6.6', title: 'Enthalpy of Reaction', blurb: 'ΔH from bond energies and Hess\'s law.', animationKey: 'enthalpy' },
     ],
   },
@@ -153,7 +162,7 @@ export const UNITS: Unit[] = [
       { id: '7.1', title: 'Reaction Quotient & Equilibrium Constant', blurb: 'Q vs K — direction of shift.', animationKey: 'equilibrium' },
       { id: '7.2', title: 'ICE Tables', blurb: 'Initial-Change-Equilibrium concentration tracking — watch the bookkeeping live.', animationKey: 'equilibrium' },
       { id: '7.3', title: 'Le Châtelier\'s Principle', blurb: 'Stress and response in equilibrium systems.', animationKey: 'le-chatelier' },
-      { id: '7.4', title: 'Solubility Equilibria', blurb: 'Ksp and the limits of dissolution.' },
+      { id: '7.4', title: 'Solubility Equilibria', blurb: 'Ksp and the limits of dissolution.', animationKey: 'solubility-ksp' },
       { id: '7.5', title: 'Common-Ion Effect', blurb: 'Suppressing dissociation with a shared ion — buffers are the canonical case.', animationKey: 'buffer' },
     ],
   },

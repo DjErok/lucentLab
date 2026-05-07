@@ -23,6 +23,14 @@ import Calorimetry from './Calorimetry';
 import Resonance from './Resonance';
 import Enthalpy from './Enthalpy';
 import PES from './PES';
+import MaxwellBoltzmann from './MaxwellBoltzmann';
+import OrbitalShapes from './OrbitalShapes';
+import BondFormation from './BondFormation';
+import CrystalLattice from './CrystalLattice';
+import Dissolution from './Dissolution';
+import VaporPressure from './VaporPressure';
+import CatalystMechanism from './CatalystMechanism';
+import SolubilityKsp from './SolubilityKsp';
 
 type Meta = {
   key: AnimationKey;
@@ -167,12 +175,12 @@ export const ANIMATIONS: Partial<Record<AnimationKey, Meta>> = {
   },
   'catalyst': {
     key: 'catalyst',
-    Component: EnergyProfile,
-    title: 'Catalysts',
+    Component: CatalystMechanism,
+    title: 'Catalyst Mechanism',
     equation: 'k_cat / k_uncat = e^((Ea_uncat − Ea_cat) / RT)',
-    whatYouSee: 'Same energy diagram as above — toggle the catalyst to watch the activation barrier collapse without changing ΔH.',
+    whatYouSee: 'Two side-by-side reactors at the same temperature. The uncatalyzed box (A + B → AB) has one tall barrier; the catalyzed box adds a homogeneous catalyst K and replaces the single hump with three smaller steps (A+K, AK+B, ABK→AB+K). Catalyst K count is conserved; product count climbs much faster on the catalyzed side.',
     whyItMatters: 'Catalysts power industry (Haber-Bosch, catalytic converters) and biology (enzymes). Remember: only kinetics changes; thermodynamics is untouched.',
-    keyTerms: ['homogeneous', 'heterogeneous', 'enzyme'],
+    keyTerms: ['homogeneous', 'heterogeneous', 'enzyme', 'turnover', 'mechanism'],
   },
   'endo-exo': {
     key: 'endo-exo',
@@ -262,5 +270,67 @@ export const ANIMATIONS: Partial<Record<AnimationKey, Meta>> = {
     whatYouSee: 'A Zn/Cu²⁺ cell with a salt bridge. Electrons flow through the wire from anode (Zn) to cathode (Cu); K⁺ and NO₃⁻ migrate through the salt bridge to keep each beaker neutral. Use the tabs to ZOOM IN on either electrode and watch the actual oxidation or reduction at the particulate level. Speed slider lets you slow it down.',
     whyItMatters: 'Cell notation, half-reactions, and E°cell are guaranteed Unit 9 material. Watching the electron flow makes the abstract diagram concrete.',
     keyTerms: ['anode (oxidation)', 'cathode (reduction)', 'salt bridge', 'reduction potential'],
+  },
+  'maxwell-boltzmann': {
+    key: 'maxwell-boltzmann',
+    Component: MaxwellBoltzmann,
+    title: 'Maxwell–Boltzmann Speed Distribution',
+    equation: 'f(v) = 4π · n · (m / 2πkT)^(3/2) · v² · e^(−mv²/2kT)',
+    whatYouSee: 'A box of N=80 particles colliding elastically. The histogram on the right is their live speed distribution. Crank the temperature — peak shifts right and broadens; pick a heavier gas — peak shifts left.',
+    whyItMatters: 'The shape of f(v) is the foundation of kinetic-molecular theory and explains why heavy gases diffuse slowly, why hot gases react faster, and why effusion follows Graham\'s law.',
+    keyTerms: ['v_p', 'v_avg', 'v_rms', 'KMT', 'Graham\'s law'],
+  },
+  'orbital-shapes': {
+    key: 'orbital-shapes',
+    Component: OrbitalShapes,
+    title: 'Atomic Orbital Shapes',
+    equation: '|ψ_{n,l,m}|² · point cloud sampling',
+    whatYouSee: 'A live |ψ|² point cloud for hydrogenic orbitals (1s, 2s, 2p, 3p, 3d_{z²}, 3d_{x²−y²}). Drag to rotate the camera. Blue lobes are the positive sign of the wavefunction; orange lobes are the negative sign — for s-orbitals the sign only changes at radial nodes.',
+    whyItMatters: 'Orbital shape determines bond geometry, π vs σ overlap, and crystal-field splitting. Seeing the dumbbells and donuts makes hybridization concrete.',
+    keyTerms: ['quantum numbers', 'nodes', 'lobes', 'parity'],
+  },
+  'bond-formation': {
+    key: 'bond-formation',
+    Component: BondFormation,
+    title: 'Quantum Origin of the Covalent Bond',
+    equation: 'V(r) = D_e · [1 − e^{−a(r − r_e)}]² − D_e',
+    whatYouSee: 'Two H atoms whose distance r you control with a slider. Below the atoms, the Morse potential energy curve plots V vs r with a live marker. As you bring them together, the orbitals overlap (yellow σ glow) and the energy plunges into the bond well at r_e ≈ 0.74 Å; squeeze closer and Pauli repulsion sends V back up.',
+    whyItMatters: 'Every covalent bond is a balance between attractive overlap and Pauli repulsion. The bottom of the well is the bond length; the depth is the bond energy.',
+    keyTerms: ['Morse potential', 'bond length', 'bond energy', 'σ bond', 'Pauli repulsion'],
+  },
+  'crystal-lattice': {
+    key: 'crystal-lattice',
+    Component: CrystalLattice,
+    title: 'Crystal Lattices · Solid Types',
+    whatYouSee: 'Tabs for the four canonical solids — ionic (NaCl rock-salt), molecular (I₂ dumbbells), metallic (Cu cation cores in a sea of delocalised electrons), and network covalent (diamond-like sp³ network). Each panel lists the bonding type, melting-point range, conductivity, and hardness.',
+    whyItMatters: 'AP loves "given these properties, what type of solid?" questions. The four 2D projections show why ionic is hard but brittle, metallic is malleable, and diamond melts above 1500 °C.',
+    keyTerms: ['ionic', 'molecular', 'metallic', 'network covalent', 'lattice energy'],
+  },
+  'dissolution': {
+    key: 'dissolution',
+    Component: Dissolution,
+    title: 'Dissolving Salt · Hydration Shell',
+    equation: 'NaCl(s) + H₂O → Na⁺(aq) + Cl⁻(aq)',
+    whatYouSee: 'A NaCl crystal with 60 explicit water molecules drawn as bent triangles (red O, orange H). Hit "dissolve" — water dipoles re-orient (O end toward Na⁺, H end toward Cl⁻), edge ions peel off with a ~6-water hydration shell, and drift into the bulk.',
+    whyItMatters: 'Dissolution is a competition: lattice energy (holding the crystal together) vs ion–dipole attraction (pulling ions apart). Watching the dipoles snap into shells makes "like dissolves like" tangible.',
+    keyTerms: ['lattice energy', 'ion–dipole', 'hydration shell', 'solvation'],
+  },
+  'vapor-pressure': {
+    key: 'vapor-pressure',
+    Component: VaporPressure,
+    title: 'Vapor Pressure',
+    equation: 'ln P = − ΔH_vap / R · 1/T + C   (Clausius–Clapeyron)',
+    whatYouSee: 'A sealed container, half-full of liquid. Molecules with KE above the escape threshold leave the surface; vapor molecules that hit the liquid with low KE re-condense. Drag the temperature slider — the equilibrium vapor pressure climbs exponentially.',
+    whyItMatters: 'Vapor pressure explains boiling points, distillation, and atmospheric humidity. The Clausius–Clapeyron equation lets you predict P(T) from ΔH_vap.',
+    keyTerms: ['evaporation', 'condensation', 'ΔH_vap', 'boiling point', 'Clausius–Clapeyron'],
+  },
+  'solubility-ksp': {
+    key: 'solubility-ksp',
+    Component: SolubilityKsp,
+    title: 'Solubility · K_sp',
+    equation: 'K_sp = [M]^a · [X]^b   ·   compare to Q',
+    whatYouSee: 'Pick a sparingly-soluble salt (AgCl, CaF₂, PbI₂, BaSO₄). Drag the log-concentration sliders for cation and anion — the reaction quotient Q updates live. The verdict box turns blue (undersaturated, more dissolves), green (saturated, dynamic equilibrium), or red (supersaturated, precipitate).',
+    whyItMatters: 'Q vs K_sp is the entire toolkit for AP solubility-equilibrium free-response: predicting precipitation, common-ion effect, selective precipitation.',
+    keyTerms: ['K_sp', 'Q', 'molar solubility', 'common-ion effect', 'precipitation'],
   },
 };
